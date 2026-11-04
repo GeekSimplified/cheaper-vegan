@@ -95,7 +95,7 @@ details ul,details ol{margin:6px 0 0;padding-left:18px;font-size:13px}
 .card .t{font-family:var(--display);font-stretch:85%;font-weight:800;font-size:16px}
 .card .v{font-family:var(--mono);font-size:22px;font-weight:700}
 .tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
-table{border-collapse:collapse;width:100%;min-width:620px;font-size:14px}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:14px}
 th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;vertical-align:middle}
 th:first-child,td:first-child{text-align:left}
 thead th{font-family:var(--display);font-stretch:85%;font-weight:800;font-size:15px;background:var(--sunk);position:sticky;top:0}
@@ -119,7 +119,7 @@ td.p input{width:72px;text-align:right;font-family:var(--mono);padding:3px 4px;b
 .scard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:10px;min-width:0}
 .shead{display:flex;justify-content:space-between;gap:10px;align-items:start;flex-wrap:wrap}
 .sadd{display:flex;align-items:center;gap:8px}
-.sprices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.sprices{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
 .sp{background:var(--sunk);border-radius:8px;padding:6px;text-align:center;min-width:0}
 .sp.off{opacity:.45}
 .sp .sn{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
@@ -131,6 +131,16 @@ td.p input{width:72px;text-align:right;font-family:var(--mono);padding:3px 4px;b
 .sverdict{margin:0}
 .sempty{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:6px}
 .slinks{margin:8px 0 0}
+/* Live prices */
+.live{margin-top:18px;background:var(--surface);border:2px solid var(--accent);border-radius:12px;padding:14px 16px;display:grid;gap:10px}
+.livehead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.livehead p{margin:4px 0 0;max-width:62ch}
+.bar{height:8px;background:var(--sunk);border-radius:99px;overflow:hidden}
+.bar span{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+#liveMsg{margin:6px 0 0}
+.livetag{display:inline-block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:0 4px;margin-top:2px;cursor:help}
+.livefail{display:inline-block;font-size:10px;font-weight:700;color:var(--warn);margin-top:2px;cursor:help}
+.btn:disabled{opacity:.5;cursor:not-allowed}
 .theme{position:relative}
 .theme summary{list-style:none;cursor:pointer;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:700;font-size:13px;color:var(--fg);display:flex;align-items:center;gap:8px}
 .theme summary::-webkit-details-marker{display:none}
@@ -150,7 +160,7 @@ textarea.copyfallback{width:100%;min-height:160px;margin-top:10px;font-family:va
   <header class="top">
     <div>
       <h1>Cheaper Cart</h1>
-      <p class="lede">Pick rock-bottom-cost, high-nutrition vegan meals for the week, most under 50¢ a serving. The app builds your shopping list and finds the cheapest store for each item across Aldi, Walmart, Target and Cub Foods.</p>
+      <p class="lede">Pick rock-bottom-cost, high-nutrition vegan meals for the week, most under 50¢ a serving. The app builds your shopping list and finds the cheapest store for each item across Aldi, Walmart, Target, Cub Foods and Hy-Vee.</p>
     </div>
     <details class="theme" id="themeMenu">
       <summary><span class="dot" aria-hidden="true"></span>Theme</summary>
@@ -185,6 +195,20 @@ textarea.copyfallback{width:100%;min-height:160px;margin-top:10px;font-family:va
     <div id="searchResults" aria-live="polite"></div>
   </div>
 
+  <div class="live" id="live">
+    <div class="livehead">
+      <div style="min-width:0">
+        <h2>Live prices</h2>
+        <p class="small muted" id="liveSub">Checks every item on your shopping list on each store's website and uses the lowest real price.</p>
+      </div>
+      <div class="btns">
+        <button type="button" class="btn" id="liveGo">Get live prices</button>
+        <button type="button" class="btn ghost" id="liveStop" hidden>Stop</button>
+      </div>
+    </div>
+    <div id="liveProg" hidden><div class="bar"><span id="liveBar"></span></div><p class="small" id="liveMsg" aria-live="polite"></p></div>
+  </div>
+
   <nav class="tabs" role="tablist">
     <button role="tab" id="tab-plan" data-tab="plan">1 · Plan meals</button>
     <button role="tab" id="tab-list" data-tab="list">2 · Shopping list</button>
@@ -196,10 +220,13 @@ textarea.copyfallback{width:100%;min-height:160px;margin-top:10px;font-family:va
   <section class="panel" id="panel-compare" hidden></section>
 
   <div class="note">
-    <b>About these prices.</b> They are typical shelf prices for store brands in the Twin Cities area as of November 2026, not live quotes. Stores change prices weekly and by location. In <b>Compare prices</b>, tap any price to replace it with what you see in the store or its app; your prices are saved and used everywhere.
+    <b>About these prices.</b> Prices marked <span class="livetag">live</span> were read from the store's website by <b>Get live prices</b>. All others are estimates of typical Twin Cities store-brand prices as of November 2026 (Hy-Vee estimates are rougher). Online pickup and delivery prices can differ from shelf prices. Tap any price to type the real one; your prices are saved and used everywhere.
     <ul>
-      <li>All four stores accept SNAP/EBT.</li>
-      <li>Check prices: <a href="https://www.aldi.us" target="_blank" rel="noopener">aldi.us</a> · <a href="https://www.walmart.com" target="_blank" rel="noopener">walmart.com</a> · <a href="https://www.target.com" target="_blank" rel="noopener">target.com</a> · <a href="https://www.cub.com" target="_blank" rel="noopener">cub.com</a></li>
+      <li><b>Before your first live check:</b> in the Claude app's browser, open each store's website once and choose your store for pickup (near 55372: Aldi Shakopee, Target Savage, and your nearest Cub and Hy-Vee). Live prices then match your stores.</li>
+    </ul>
+    <ul>
+      <li>All five stores accept SNAP/EBT.</li>
+      <li>Check prices: <a href="https://www.aldi.us" target="_blank" rel="noopener">aldi.us</a> · <a href="https://www.walmart.com" target="_blank" rel="noopener">walmart.com</a> · <a href="https://www.target.com" target="_blank" rel="noopener">target.com</a> · <a href="https://www.cub.com" target="_blank" rel="noopener">cub.com</a> · <a href="https://www.hy-vee.com/aisles-online" target="_blank" rel="noopener">hy-vee.com</a></li>
       <li>Nutrition numbers are estimates per serving. A vegan diet needs a vitamin B12 supplement; a cheap store-brand bottle lasts months.</li>
       <li>Every meal shares the same ~20 staples, so the bags and jars you buy get used up across the week instead of going to waste.</li>
     </ul>
@@ -210,7 +237,7 @@ textarea.copyfallback{width:100%;min-height:160px;margin-top:10px;font-family:va
 <script>
 (function(){
 const STORES=[
-  {id:"aldi",name:"Aldi"},{id:"walmart",name:"Walmart"},{id:"target",name:"Target"},{id:"cub",name:"Cub Foods"}];
+  {id:"aldi",name:"Aldi"},{id:"walmart",name:"Walmart"},{id:"target",name:"Target"},{id:"cub",name:"Cub Foods"},{id:"hyvee",name:"Hy-Vee"}];
 // prices: [Aldi, Walmart, Target, Cub]; null = not usually carried
 const ITEMS={
  oats:{n:"Old-fashioned oats",pkg:"42 oz canister",size:42,u:"oz",cat:"Grains",p:[3.29,3.42,3.79,4.49]},
@@ -275,6 +302,8 @@ const EXTRA={
 };
 for(const v of Object.values(EXTRA))v.x=true;
 Object.assign(ITEMS,EXTRA);
+// Hy-Vee estimate when an item lists four prices: about 10% above Cub (matches spot checks), ending in 9
+for(const it of Object.values(ITEMS))if(it.p.length<5)it.p.push(it.p[3]==null?null:Math.round(it.p[3]*1.1*10)/10-0.01);
 const ALIAS={banana:"fruit",apples:"fruit",lentils:"legumes",pinto:"legumes",black:"legumes",splitpea:"legumes peas",pb:"peanuts nut butter",oil:"cooking canola",pasta:"noodles",oats:"oatmeal cereal",tomatoes:"canned"};
 const CATS=["Produce","Beans & protein","Grains","Dairy aisle","Frozen","Canned & pantry"];
 // per-serving amounts in each item's unit; nutrition per serving (kcal, protein g, fiber g)
@@ -332,10 +361,10 @@ const RECIPES=[
 const DEFAULT_PLAN={ptoast:7,oats:7,mujadara:4,pbs:5,pinto:6,splitpea:3,friedrice:2,baked:2,lentil:0,skillet:0,pasta:0,chili:2};
 
 const PV=2; // bump when the recipe set changes so old saved plans don't point at removed meals
-let S={pv:PV,plan:{...DEFAULT_PLAN},people:1,stores:{aldi:true,walmart:true,target:true,cub:true},have:{},got:{},prices:{},route:"mix",tab:"plan",theme:{bg:"black",accent:"green"},extra:{}};
+let S={pv:PV,plan:{...DEFAULT_PLAN},people:1,stores:{aldi:true,walmart:true,target:true,cub:true,hyvee:true},have:{},got:{},prices:{},route:"mix",tab:"plan",theme:{bg:"black",accent:"green"},extra:{}};
 const LS="cheaper-cart-v1";
 try{const raw=localStorage.getItem(LS);if(raw)merge(JSON.parse(raw));}catch(e){}
-function merge(d){if(!d||typeof d!=="object")return;const keys=["people","stores","have","got","prices","route","tab","theme","extra"];if(d.pv===PV)keys.push("plan");else S.got={};for(const k of keys)if(d[k]!==undefined)S[k]=JSON.parse(JSON.stringify(d[k]));S.pv=PV;}
+function merge(d){if(!d||typeof d!=="object")return;const keys=["people","stores","have","got","prices","route","tab","theme","extra","live","liveAt"];if(d.pv===PV)keys.push("plan");else S.got={};for(const k of keys)if(d[k]!==undefined)S[k]=JSON.parse(JSON.stringify(d[k]));S.pv=PV;for(const st of STORES)if(S.stores[st.id]===undefined)S.stores[st.id]=true;}
 
 // ---- persistence (private per-viewer db doc, falls back to this browser) ----
 let docRef=null,saveTimer=null,saving=Promise.resolve();
@@ -361,8 +390,18 @@ function save(){
 const $=s=>document.querySelector(s);
 const money=v=>"$"+v.toFixed(2);
 const enabledIdx=()=>STORES.map((s,i)=>S.stores[s.id]?i:-1).filter(i=>i>=0);
-function price(id,i){const o=S.prices[id];if(o&&o[i]!=null)return o[i];return ITEMS[id].p[i];}
+// Price priority: a price you typed > a live price read from the store's site > the built-in estimate.
+// A live cell is {raw: shelf price, pk: how many of our packages that product equals, prod: product name, at: time}.
+function liveCell(id,i){const l=S.live&&S.live[id];return l&&l[i]&&l[i].raw>0&&l[i].pk>0?l[i]:null;}
+function price(id,i){const o=S.prices[id];if(o&&o[i]!=null)return o[i];const L=liveCell(id,i);if(L)return Math.round(L.raw/L.pk*100)/100;const p=ITEMS[id].p[i];return p==null?null:Math.round(p*100)/100;}
 function isEdited(id,i){const o=S.prices[id];return !!(o&&o[i]!=null);}
+function isLive(id,i){return !isEdited(id,i)&&!!liveCell(id,i);}
+// what you'd actually buy at store i: live products are bought whole, in their real size
+function buy(n,i){const p=price(n.id,i);if(p==null)return null;const it=ITEMS[n.id],L=isLive(n.id,i)?liveCell(n.id,i):null;
+  if(L){const q=Math.max(1,Math.ceil(n.amt/(it.size*L.pk)-1e-9));return {cost:q*L.raw,label:q+" × "+L.prod,live:true};}
+  return {cost:p*n.pk,label:n.pk+" × "+it.pkg,live:false};}
+const ITEM_Q={oats:"old fashioned oats",rice:"brown rice",pasta:"whole wheat spaghetti",bread:"whole wheat bread",lentils:"dry lentils",pinto:"dry pinto beans",black:"dry black beans",splitpea:"dry split peas",pb:"creamy peanut butter",banana:"bananas",carrots:"carrots 2 lb bag",onions:"yellow onions 3 lb bag",garlic:"garlic",potatoes:"russet potatoes 5 lb",cabbage:"green cabbage",mixveg:"frozen mixed vegetables",tomatoes:"canned diced tomatoes",oil:"vegetable oil",chili:"chili powder",cumin:"ground cumin"};
+const itemQuery=id=>ITEM_Q[id]||ITEMS[id].n.toLowerCase().replace(/\(.*?\)/g,"").trim();
 function cheapest(id,idxs){let best=-1,bp=Infinity;for(const i of idxs){const p=price(id,i);if(p!=null&&p<bp){bp=p;best=i;}}return best<0?null:{i:best,p:bp};}
 function needs(){
   const need={};
@@ -373,7 +412,7 @@ function needs(){
   out.sort((a,b)=>CATS.indexOf(ITEMS[a.id].cat)-CATS.indexOf(ITEMS[b.id].cat)||ITEMS[a.id].n.localeCompare(ITEMS[b.id].n));
   return out;
 }
-function servingCost(r){const idx=enabledIdx();let c=0;for(const [k,a] of Object.entries(r.ing)){const b=cheapest(k,idx.length?idx:[0,1,2,3]);if(b)c+=b.p*a/ITEMS[k].size;}return c;}
+function servingCost(r){const idx=enabledIdx();let c=0;for(const [k,a] of Object.entries(r.ing)){const b=cheapest(k,idx.length?idx:STORES.map((_,i)=>i));if(b)c+=b.p*a/ITEMS[k].size;}return c;}
 // assign each item to a store for a route: "mix" = cheapest per item, or a store index (gaps filled from cheapest other store)
 function assign(route,list){
   const idx=enabledIdx(),rows=[];
@@ -381,7 +420,8 @@ function assign(route,list){
     let st=null,gap=false;
     if(route==="mix"){st=cheapest(n.id,idx);}
     else{const i=+route,p=price(n.id,i);if(p!=null)st={i,p};else{st=cheapest(n.id,idx.filter(j=>j!==i));gap=true;}}
-    rows.push({...n,st,gap,cost:st?st.p*n.pk:0});}
+    const b=st?buy(n,st.i):null;
+    rows.push({...n,st,gap,cost:b?b.cost:0,label:b?b.label:n.pk+" × "+ITEMS[n.id].pkg,live:!!(b&&b.live)});}
   return rows;
 }
 const total=rows=>rows.reduce((s,r)=>s+r.cost,0);
@@ -429,6 +469,7 @@ function render(){
   if(S.tab==="list")renderList(list);
   if(S.tab==="compare")renderCompare(list);
   renderSearch();
+  if(!liveCtl&&!$("#liveGo").disabled)$("#liveSub").textContent=liveSubText();
 }
 function routeLabel(){if(S.route==="mix")return "cheapest mix of "+enabledIdx().map(i=>STORES[i].name).join(", ");return STORES[+S.route].name+" only";}
 
@@ -455,8 +496,8 @@ function renderList(list){
     const g=groups[k],name=k<0?"Not carried at your stores":STORES[k].name;
     h+=`<div class="storegroup"><header><h3>${name}</h3><span class="num">${money(total(g))} · ${g.length} items</span></header>`+
     g.map(r=>{const it=ITEMS[r.id];return `<div class="li${S.got[r.id]?" got":""}"><input type="checkbox" id="got-${r.id}" data-got="${r.id}"${S.got[r.id]?" checked":""} aria-label="Got ${it.n}">
-      <label for="got-${r.id}" style="min-width:0"><div class="nm">${it.n}${r.gap?`<span class="flag">not at ${STORES[+S.route].name}</span>`:""}</div><div class="q">${r.pk} × ${it.pkg}</div></label>
-      <div class="pr"><div class="num">${money(r.cost)}</div><button type="button" class="linkbtn" data-have="${r.id}">I have this</button></div></div>`}).join("")+`</div>`;
+      <label for="got-${r.id}" style="min-width:0"><div class="nm">${it.n}${r.gap?`<span class="flag">not at ${STORES[+S.route].name}</span>`:""}</div><div class="q">${esc(r.label)}${r.live?' <span class="livetag">live</span>':""}</div></label>
+      <div class="pr"><div class="num">${money(r.cost)}</div>${r.st?`<a class="small" href="${STORE_SEARCH[STORES[r.st.i].id]+encodeURIComponent(itemQuery(r.id))}" target="_blank" rel="noopener">Find at ${STORES[r.st.i].name}</a><br>`:""}<button type="button" class="linkbtn" data-have="${r.id}">I have this</button></div></div>`}).join("")+`</div>`;
   }
   if(have.length)h+=`<div class="note"><b>Already at home</b> (not on the list): <div class="haveList">${have.map(n=>`${ITEMS[n.id].n} <button type="button" class="linkbtn" data-have="${n.id}">add back</button>`).join(" · ")}</div></div>`;
   h+=`<div id="copyFallback"></div>`;
@@ -464,28 +505,29 @@ function renderList(list){
 }
 
 function renderCompare(list){
-  const idx=enabledIdx(),buy=list.filter(n=>!n.have&&n.pk);
+  const idx=enabledIdx(),buyList=list.filter(n=>!n.have&&n.pk);
   const mix=total(assign("mix",list));
-  const singles=idx.map(i=>{let t=0,miss=0;for(const n of buy){const p=price(n.id,i);if(p==null)miss++;else t+=p*n.pk;}return {i,t,miss};});
+  const singles=idx.map(i=>{let t=0,miss=0;for(const n of buyList){const b=buy(n,i);if(!b)miss++;else t+=b.cost;}return {i,t,miss};});
   const filled=idx.map(i=>({i,t:total(assign(String(i),list))}));
   const worst=Math.max(mix,...filled.map(f=>f.t));
   const bestSingle=filled.slice().sort((a,b)=>a.t-b.t)[0];
   let h=`<div class="cards"><div class="card best"><div class="t">Cheapest mix</div><div class="v">${money(mix)}</div><div class="small muted">each item where it's cheapest${worst>mix?` · saves ${money(worst-mix)}`:""}</div></div>`+
    singles.map(s=>`<div class="card${bestSingle&&bestSingle.i===s.i?" best":""}"><div class="t">${STORES[s.i].name} only</div><div class="v">${money(s.t)}</div><div class="small muted">${s.miss?`${s.miss} item${s.miss>1?"s":""} not carried`:"everything on the list"}${bestSingle&&bestSingle.i===s.i?" · best single store":""}</div></div>`).join("")+`</div>`;
   if(!idx.length)h+=`<p class="muted">Turn on at least one store above.</p>`;
-  h+=`<p class="small muted">Prices are per package. Yellow tag = cheapest among your stores. Tap a price to type the real one; <span class="edited">•</span> marks prices you entered. <button type="button" class="linkbtn" id="resetPrices">Reset my prices</button></p>`;
+  h+=`<p class="small muted">Prices are per package size shown. Yellow tag = cheapest among your stores. <span class="livetag">live</span> = read from the store's site${S.liveAt?" on "+new Date(S.liveAt).toLocaleString([], {month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}):""}; hover or long-press it to see the product. <span class="edited">•</span> = a price you typed. Tap a price to change it. <button type="button" class="linkbtn" id="resetPrices">Reset my prices</button></p>`;
   h+=`<div class="tablewrap"><table><thead><tr><th>Item</th><th>Buy</th>${idx.map(i=>`<th>${STORES[i].name}</th>`).join("")}</tr></thead><tbody>`;
-  for(const n of buy){const it=ITEMS[n.id],b=cheapest(n.id,idx);
+  for(const n of buyList){const it=ITEMS[n.id],b=cheapest(n.id,idx);
     h+=`<tr><td><b>${it.n}</b><div class="small muted">${it.pkg}</div></td><td class="num">${n.pk}</td>`+idx.map(i=>{const p=price(n.id,i);
       if(p==null)return `<td class="p na"><button type="button" data-edit="${n.id}" data-si="${i}" style="font-size:12px">not carried</button></td>`;
-      return `<td class="p${b&&b.i===i?" low":""}"><button type="button" data-edit="${n.id}" data-si="${i}" aria-label="Edit ${it.n} price at ${STORES[i].name}">${money(p)}${isEdited(n.id,i)?'<span class="edited"> •</span>':""}</button><span class="u">${unitPrice(p,it)}</span></td>`}).join("")+`</tr>`;}
+      return `<td class="p${b&&b.i===i?" low":""}"><button type="button" data-edit="${n.id}" data-si="${i}" aria-label="Edit ${it.n} price at ${STORES[i].name}">${money(p)}${isEdited(n.id,i)?'<span class="edited"> •</span>':""}</button><span class="u">${unitPrice(p,it)}</span>${liveMark(n.id,i)}</td>`}).join("")+`</tr>`;}
   h+=`</tbody><tfoot><tr><td>Total for this list</td><td></td>${singles.map(s=>`<td class="num">${money(s.t)}${s.miss?`<div class="small muted">+${s.miss} missing</div>`:""}</td>`).join("")}</tr></tfoot></table></div>`;
   $("#panel-compare").innerHTML=h;
 }
+function liveMark(id,i){if(isLive(id,i)){const L=liveCell(id,i);return `<span class="livetag" title="${esc(L.prod)} — ${money(L.raw)}">live</span>`;}const f=LIVE_FAIL[id+":"+i];return f?`<span class="livefail" title="${esc(f)}">not found</span>`:"";}
 function unitPrice(p,it){const v=p/it.size;return (v<0.1?"$"+v.toFixed(3):"$"+v.toFixed(2))+"/"+it.u.replace("fl oz","fl oz");}
 
 // ---- search ----
-const STORE_SEARCH={aldi:"https://www.aldi.us/store/aldi/s?k=",walmart:"https://www.walmart.com/search?q=",target:"https://www.target.com/s?searchTerm=",cub:"https://www.cub.com/store/cub/s?k="};
+const STORE_SEARCH={aldi:"https://www.aldi.us/store/aldi/s?k=",walmart:"https://www.walmart.com/search?q=",target:"https://www.target.com/s?searchTerm=",cub:"https://www.cub.com/store/cub/s?k=",hyvee:"https://www.hy-vee.com/aisles-online/search?search="};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const stem=w=>w.length>4&&w.endsWith("es")&&!w.endsWith("ses")?w.slice(0,-2):w.length>3&&w.endsWith("s")?w.slice(0,-1):w;
 function searchItems(q){
@@ -510,15 +552,125 @@ function renderSearch(){
     const hi=onPs.length?Math.max(...onPs.map(x=>x.p)):0,n=S.extra[id]||0;
     return `<article class="scard"><div class="shead"><div style="min-width:0"><h3>${it.n}</h3><div class="small muted">${it.pkg} · ${it.cat}${inPlan.has(id)?" · in your meal plan":""}</div></div>
       <div class="sadd">${n?`<div class="stepper"><button type="button" data-extra="${id}" data-d="-1" aria-label="One fewer ${it.n}">−</button><span class="n">${n}</span><button type="button" data-extra="${id}" data-d="1" aria-label="One more ${it.n}">+</button></div><span class="small muted">on list</span>`:`<button type="button" class="btn" data-extra="${id}" data-d="1">Add to list</button>`}</div></div>
-      <div class="sprices">${prices.map(({i,p})=>{const on=S.stores[STORES[i].id];return `<div class="sp${!on?" off":""}"><span class="sn">${STORES[i].name}</span><div class="p${b&&b.i===i?" low":""}${p==null?" na":""}"><button type="button" data-edit="${id}" data-si="${i}" aria-label="Edit ${it.n} price at ${STORES[i].name}">${p==null?"not carried":money(p)+(isEdited(id,i)?'<span class="edited"> •</span>':"")}</button>${p!=null?`<span class="u">${unitPrice(p,it)}</span>`:""}</div></div>`}).join("")}</div>
+      <div class="sprices">${prices.map(({i,p})=>{const on=S.stores[STORES[i].id];return `<div class="sp${!on?" off":""}"><span class="sn">${STORES[i].name}</span><div class="p${b&&b.i===i?" low":""}${p==null?" na":""}"><button type="button" data-edit="${id}" data-si="${i}" aria-label="Edit ${it.n} price at ${STORES[i].name}">${p==null?"not carried":money(p)+(isEdited(id,i)?'<span class="edited"> •</span>':"")}</button>${p!=null?`<span class="u">${unitPrice(p,it)}</span>`:""}${liveMark(id,i)}</div></div>`}).join("")}</div>
       ${b?`<p class="small sverdict">Cheapest at <b>${STORES[b.i].name}</b>${hi>b.p?`, saving ${money(hi-b.p)} over the priciest of your stores`:""}.</p>`:`<p class="small muted sverdict">Not carried at the stores you have turned on.</p>`}
     </article>`}).join("")+`</div>`+links;
 }
+
+// ---- live prices: drive the Claude desktop app's browser to each store's search page, then ask Claude to pick the cheapest real match ----
+const BROWSER="host:claude_browser";
+const LIVE_FAIL={}; // "itemId:storeIndex" -> reason, for this visit only
+let liveCtl=null,liveEnv=null;
+const sleep=(ms,sig)=>new Promise((res,rej)=>{const t=setTimeout(res,ms);if(sig)sig.addEventListener("abort",()=>{clearTimeout(t);rej({code:"cancelled"});},{once:true});});
+const hasPrice=t=>/\$\s?\d|\d\s?¢/.test(t);
+function pageText(res){if(!res)return "";if(typeof res.payload==="string")return res.payload;return (res.content||[]).filter(b=>b&&b.type==="text").map(b=>b.text).join("\n");}
+function trimPage(t){const m=t.search(/results? for|search results/i);const start=m>200?m-200:0;return t.slice(start,start+9000);}
+async function getLiveEnv(){
+  if(liveEnv)return liveEnv;
+  if(!window.claude||!window.claude.use)return null;
+  const [mcp,sample]=await Promise.all([window.claude.use("mcp"),window.claude.use("sample")]);
+  if(!mcp||!sample)return null;
+  return liveEnv={mcp,sample};
+}
+function liveMsg(t,frac){$("#liveMsg").textContent=t;if(frac!=null)$("#liveBar").style.width=Math.round(frac*100)+"%";}
+function liveSubText(){
+  const n=needs().filter(x=>!x.have&&x.pk).length,s=enabledIdx().length,c=n*s;
+  return c?`Checks the ${n} items on your list at your ${s} stores on each store's website (${c} lookups, about ${Math.max(1,Math.round(c*7/60))} min) and uses the lowest real price. Works in the Claude desktop app.`:"Add meals or items to your shopping list first.";
+}
+function browserStop(e){
+  const c=e&&e.code;
+  if(c==="server_not_connected"||c==="not_granted"||c==="capability_disabled"||c==="capability_removed")return "Live prices only work when Cheaper Cart is open in the Claude desktop app.";
+  if(c==="not_in_manifest"||c==="approval_required"||c==="consent_required")return "Browser access wasn't allowed. Click Get live prices again and choose Allow.";
+  if(c==="cancelled")return "The browser step was declined.";
+  if(c==="blocked_by_policy")return "Your organization doesn't allow this page to use the browser.";
+  return null; // tool_error, upstream_error, server_unavailable: skip this one lookup
+}
+function sampleStop(e){
+  const c=e&&e.code;
+  if(c==="not_granted")return "Claude needs your OK to read the store pages. Click Get live prices again and choose Allow.";
+  if(c==="rate_limited")return "Claude's usage limit was reached for now. Prices found so far are saved; try again later.";
+  if(c==="sampling_disabled"||c==="session_expired"||c==="not_declared"||c==="capability_disabled"||c==="capability_removed")return "Claude isn't available to read the pages right now. Prices found so far are saved.";
+  return null;
+}
+function extractPrompt(it,st,text){
+  return `You are reading the text of ${st.name}'s online grocery search results page (store near ZIP 55372).
+Find the single CHEAPEST product, by price per unit, that is a real match for this shopping-list item:
+- Item: ${it.n}
+- Our reference package: ${it.pkg} (${it.size} ${it.u})
+Matching rules: same kind of food and same form (dry beans are not canned beans; frozen is not fresh; plain, not flavored or seasoned). Store brands and name brands are both fine. Any package size is fine. Skip items shown as out of stock. Use the current price (the sale price when one is shown), not the crossed-out original price.
+Reply with only JSON, either
+{"found": true, "product": "<product name and size as shown>", "price": <dollars for one of that product, a number>, "packages": <how many of our reference packages one of that product equals>}
+or {"found": false} when nothing on the page matches.
+Examples for "packages": a 32 oz bag vs our 16 oz bag = 2; a 15 oz can vs our 14.5 oz can = 1; one garlic bulb vs our 3 bulbs = 0.33; produce priced per lb vs our 3 lb bag = 0.33 (and use the per-lb price).
+
+Page text:
+${text}`;
+}
+function applyLive(id,i,r){
+  const it=ITEMS[id],price=Number(r&&r.price),pk=Number(r&&r.packages);
+  if(!r||r.found!==true||!(price>0)||!(pk>0.05&&pk<60)){LIVE_FAIL[id+":"+i]="No matching product found on the site";return false;}
+  const per=price/pk,est=it.p[i]!=null?it.p[i]:it.p.find(x=>x!=null);
+  if(est&&(per<est*0.2||per>est*5)){LIVE_FAIL[id+":"+i]=`Skipped an unlikely match: ${String(r.product||"").slice(0,80)} at ${money(price)}`;return false;}
+  S.live=S.live||{};S.live[id]=S.live[id]||STORES.map(()=>null);
+  S.live[id][i]={raw:Math.round(price*100)/100,pk:Math.round(pk*1000)/1000,prod:String(r.product||it.n).slice(0,90),at:Date.now()};
+  if(S.prices[id]&&S.prices[id][i]!=null){S.prices[id][i]=null;if(S.prices[id].every(x=>x==null))delete S.prices[id];} // a fresh live price replaces an older typed one
+  delete LIVE_FAIL[id+":"+i];
+  return true;
+}
+async function runLive(){
+  const items=needs().filter(n=>!n.have&&n.pk).map(n=>n.id),stores=enabledIdx();
+  $("#liveProg").hidden=false;
+  if(!items.length||!stores.length){liveMsg("Add meals or items to your shopping list first.",0);return;}
+  liveMsg("Connecting to the Claude desktop app's browser…",0);
+  const env=await getLiveEnv();
+  if(!env){liveMsg("Live prices only work when Cheaper Cart is open in the Claude desktop app.",0);return;}
+  const ctl=liveCtl=new AbortController(),sig=ctl.signal;
+  $("#liveGo").disabled=true;$("#liveStop").hidden=false;
+  const tasks=[];for(const i of stores)for(const id of items)tasks.push({id,i});
+  let done=0,ok=0,miss=0,stopMsg=null;const pending=new Set();
+  const step=()=>liveMsg(`Checked ${done} of ${tasks.length} · ${ok} live prices found${miss?` · ${miss} not found`:""}`,done/tasks.length);
+  try{
+    for(const t of tasks){
+      if(sig.aborted)break;
+      const st=STORES[t.i],it=ITEMS[t.id],key=t.id+":"+t.i;
+      liveMsg(`Checking ${st.name}: ${it.n} (${done+1} of ${tasks.length})`,done/tasks.length);
+      let text="";
+      try{
+        await env.mcp.callTool(BROWSER,"navigate",{url:STORE_SEARCH[st.id]+encodeURIComponent(itemQuery(t.id))},{cache:false,signal:sig});
+        await sleep(2500,sig);
+        text=pageText(await env.mcp.callTool(BROWSER,"get_page_text",{max_chars:20000},{cache:false,signal:sig}));
+        if(!hasPrice(text)){await sleep(3000,sig);text=pageText(await env.mcp.callTool(BROWSER,"get_page_text",{max_chars:20000},{cache:false,signal:sig}));}
+      }catch(e){
+        if(sig.aborted)break;
+        const m=browserStop(e);if(m){stopMsg=m;break;}
+        LIVE_FAIL[key]="Couldn't open the store's page";miss++;done++;step();continue;
+      }
+      if(!hasPrice(text)){LIVE_FAIL[key]="The page showed no prices (it may want a sign-in or a human check)";miss++;done++;step();continue;}
+      while(pending.size>=3)await Promise.race(pending);
+      if(sig.aborted)break;
+      const job=env.sample.json(extractPrompt(it,st,trimPage(text)),{modelTier:"quick",signal:sig})
+        .then(r=>{if(applyLive(t.id,t.i,r))ok++;else miss++;})
+        .catch(e=>{if(sig.aborted)return;const m=sampleStop(e);if(m){stopMsg=m;ctl.abort();return;}LIVE_FAIL[key]="Couldn't read the price on the page";miss++;})
+        .finally(()=>{pending.delete(job);done++;if(!sig.aborted)step();render();});
+      pending.add(job);
+    }
+    await Promise.allSettled([...pending]);
+  }finally{
+    if(ok)S.liveAt=Date.now();
+    save();render();
+    $("#liveGo").disabled=false;$("#liveStop").hidden=true;liveCtl=null;
+    const summary=`${ok} live price${ok===1?"":"s"} found${miss?`, ${miss} not found (marked “not found”; estimates kept)`:""}.`;
+    liveMsg(stopMsg?stopMsg+" "+summary:sig.aborted?"Stopped. "+summary:"Done. "+summary+" Your list now uses the lowest prices.",stopMsg||sig.aborted?done/tasks.length:1);
+  }
+}
+(async()=>{const env=await getLiveEnv().catch(()=>null);if(!env){$("#liveGo").disabled=true;$("#liveSub").textContent="Live prices work when Cheaper Cart is open in the Claude desktop app. This copy uses estimates and the prices you type.";}})();
 
 // ---- events ----
 document.addEventListener("click",e=>{
   const t=e.target.closest("button");if(!t)return;
   if(t.dataset.extra){const id=t.dataset.extra,n=Math.max(0,Math.min(20,(S.extra[id]||0)+ +t.dataset.d));if(n)S.extra[id]=n;else delete S.extra[id];if(n&&S.have[id])delete S.have[id];save();render();if(+t.dataset.d>0&&n===1)toast("Added to your shopping list");return;}
+  if(t.id==="liveGo"){runLive();return;}
+  if(t.id==="liveStop"){if(liveCtl)liveCtl.abort();return;}
   if(t.id==="qClear"){$("#q").value="";renderSearch();$("#q").focus();return;}
   if(t.dataset.bg){S.theme={...S.theme,bg:t.dataset.bg};save();render();return;}
   if(t.dataset.accent){S.theme={...S.theme,accent:t.dataset.accent};save();render();return;}
@@ -546,7 +698,7 @@ function startEdit(btn){
   const inp=td.querySelector("input");inp.focus();inp.select();
   let done=false;
   const commit=keep=>{if(done)return;done=true;
-    if(keep){const v=inp.value.trim();const o=S.prices[id]?[...S.prices[id]]:[null,null,null,null];
+    if(keep){const v=inp.value.trim();const o=S.prices[id]?[...S.prices[id]]:STORES.map(()=>null);
       if(v===""){o[i]=null;}else{const n=parseFloat(v);if(isFinite(n)&&n>=0)o[i]=Math.round(n*100)/100;}
       if(o.every(x=>x==null))delete S.prices[id];else S.prices[id]=o;save();}
     render();};
@@ -557,7 +709,7 @@ function listText(){
   const rows=assign(S.route,needs()),groups={};
   for(const r of rows){const k=r.st?STORES[r.st.i].name:"Other";(groups[k]=groups[k]||[]).push(r);}
   let s="Cheaper Cart list — "+money(total(rows))+"\n";
-  for(const [k,g] of Object.entries(groups)){s+="\n"+k.toUpperCase()+" ("+money(total(g))+")\n";for(const r of g)s+="[ ] "+r.pk+" x "+ITEMS[r.id].n+" ("+ITEMS[r.id].pkg+") "+money(r.cost)+"\n";}
+  for(const [k,g] of Object.entries(groups)){s+="\n"+k.toUpperCase()+" ("+money(total(g))+")\n";for(const r of g)s+="[ ] "+ITEMS[r.id].n+": "+r.label+" "+money(r.cost)+"\n";}
   return s;
 }
 function copyList(){
