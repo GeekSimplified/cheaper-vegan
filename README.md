@@ -4,7 +4,7 @@ A single-page app for eating well on an extreme budget. It plans very cheap, hig
 
 ## Features
 
-- **Plan meals:** 36 meals, including Mexican, Chinese and other Asian dishes (with a Shuffle my week button and meal-type and cuisine filters), built on about 20 cheap staples (dry beans, lentils, split peas, oats, rice, peanut butter, potatoes, cabbage, carrots, onions, bananas), sorted cheapest first. Each shows its cost per serving, calories, protein and fiber.
+- **Plan meals:** 42 meals you can favorite (favorites come up more often in Shuffle), including Mexican, Chinese and other Asian dishes (with a Shuffle my week button and meal-type and cuisine filters), built on about 20 cheap staples (dry beans, lentils, split peas, oats, rice, peanut butter, potatoes, cabbage, carrots, onions, bananas), sorted cheapest first. Each shows its cost per serving, calories, protein and fiber.
 - **Shopping list:** Adds up ingredients across the week and rounds up to whole packages. Groups items by store, lets you mark what you already have and check items off as you shop, and copies the list as text.
 - **Compare prices:** Shows each item's price at each store with the cheapest highlighted. Totals the trip for each store on its own and for the cheapest mix of stores.
 - **Ingredient search:** Search about 60 groceries to compare prices at all four stores, add any of them to your list, or jump to each store's website to check today's price.

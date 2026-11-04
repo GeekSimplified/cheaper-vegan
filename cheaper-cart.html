@@ -65,6 +65,10 @@ details summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--accent
 details ul,details ol{margin:6px 0 0;padding-left:18px;font-size:13px}
 
 .planfilter{margin-bottom:10px}
+.rhead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.favbtn{flex:none;width:44px;height:44px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--fg);font-size:24px;line-height:1;cursor:pointer;display:grid;place-items:center}
+.favbtn[aria-pressed="true"]{color:var(--heart,#ff7a9c);border-color:var(--heart,#ff7a9c)}
+.rsrc{margin:0;font-size:14px;color:var(--muted)}
 .rc .meal .cui{color:var(--accent)}
 .planfilter .chip .muted{font-weight:500}
 .planfilter .chip[aria-pressed="true"] .muted{color:inherit}
@@ -535,7 +539,32 @@ const RECIPES=[
  {id:"chana",n:"Chickpea masala over rice",meal:"Dinner",cui:"as",cal:400,pro:12,fib:10,
   why:"An Indian favorite. Canned chickpeas make it a 20-minute meal.",
   ing:{cchick:0.5,rice:1.5,tomatoes:0.5,onions:1.5,garlic:1,cumin:0.5,chili:0.25,oil:0.1},
-  steps:["Cook rice.","Fry diced onion and garlic in oil; add cumin and chili powder for 30 seconds.","Add tomatoes and drained chickpeas, simmer 10 minutes, and serve over rice."]}
+  steps:["Cook rice.","Fry diced onion and garlic in oil; add cumin and chili powder for 30 seconds.","Add tomatoes and drained chickpeas, simmer 10 minutes, and serve over rice."]},
+ // --- more budget recipes ---
+ {id:"scramble",n:"Tofu scramble on toast",meal:"Breakfast",cal:270,pro:17,fib:4,
+  why:"The highest-protein breakfast here. Crumbled tofu cooks like scrambled eggs.",
+  ing:{tofuxf:3.5,onions:1,mixveg:1.5,chili:0.25,oil:0.1,bread:1},
+  steps:["Fry diced onion and frozen vegetables in oil for 4 minutes.","Crumble in the tofu with chili powder and a pinch of salt; cook 5 minutes, stirring.","Serve on toast."]},
+ {id:"lentiltacos",n:"Spiced lentil tacos",meal:"Dinner",cui:"mx",cal:345,pro:15,fib:12,
+  why:"Lentils cooked with chili and cumin make a cheap, meaty-tasting taco filling.",
+  ing:{ctort:3,lentils:1.5,tomatoes:0.25,onions:0.5,chili:0.75,cumin:0.25,cabbage:1},
+  steps:["Simmer lentils 20 minutes until soft; drain.","Cook with diced onion, tomatoes, chili powder and cumin until thick.","Fill warm tortillas and top with shredded cabbage."]},
+ {id:"chickpeasand",n:"Smashed chickpea sandwich",meal:"Lunch",cal:360,pro:14,fib:11,
+  why:"A no-cook lunch. Mashed chickpeas stand in for tuna or egg salad.",
+  ing:{cchick:0.5,bread:2,carrots:1,onions:0.5,oil:0.1},
+  steps:["Drain chickpeas and mash with a fork, a little oil, salt and pepper.","Stir in grated carrot and finely diced onion.","Spread on bread."]},
+ {id:"potatosoup",n:"Creamy potato & chickpea soup",meal:"Lunch or dinner",cal:260,pro:9,fib:7,
+  why:"Blending chickpeas into the soup makes it creamy without any milk.",
+  ing:{potatoes:5,cchick:0.33,onions:1,garlic:1,oil:0.1},
+  steps:["Soften onion and garlic in oil.","Add diced potatoes, chickpeas and water to cover; simmer 20 minutes.","Mash or blend until creamy and season with salt and pepper."]},
+ {id:"tomatotofu",n:"Chinese tomato & tofu stir-fry",meal:"Dinner",cui:"cn",cal:390,pro:17,fib:4,
+  why:"A Chinese home-cooking classic, usually made with eggs, here with tofu.",
+  ing:{tofu:3,tomatoes:0.5,rice:2,garlic:1,soysauce:0.25,oil:0.1},
+  steps:["Cook rice.","Brown cubed tofu in oil, then add garlic and tomatoes.","Simmer 5 minutes until saucy, add soy sauce, and serve over rice."]},
+ {id:"aloo",n:"Indian-style cabbage & potato over rice",meal:"Dinner",cui:"as",cal:340,pro:7,fib:8,
+  why:"Based on aloo patta gobhi, a cheap North Indian everyday dish.",
+  ing:{potatoes:5,cabbage:4,rice:1.5,onions:0.5,cumin:0.5,chili:0.25,oil:0.15},
+  steps:["Cook rice.","Fry cumin and onion in oil, add diced potato and cook 10 minutes.","Add shredded cabbage and chili powder, cover, and cook 10 minutes until tender."]}
 ];
 // cuisine tags: mx Mexican, cn Chinese, as other Asian (Indian, Thai, Korean)
 const CUISINES=[["all","Any cuisine"],["mx","Mexican"],["cn","Chinese"],["as","Other Asian"]];
@@ -547,7 +576,7 @@ const PV=2; // bump when the recipe set changes so old saved plans don't point a
 let S={pv:PV,plan:{...DEFAULT_PLAN},people:1,stores:{aldi:true,walmart:true,target:true,cub:true,hyvee:true},have:{},got:{},prices:{},route:"mix",tab:"plan",theme:{bg:"black",accent:"green"},extra:{}};
 const LS="cheaper-cart-v1";
 try{const raw=localStorage.getItem(LS);if(raw)merge(JSON.parse(raw));}catch(e){}
-function merge(d){if(!d||typeof d!=="object")return;const keys=["people","stores","have","got","prices","route","tab","theme","extra","live","liveAt","pf","cf"];if(d.pv===PV)keys.push("plan");else S.got={};for(const k of keys)if(d[k]!==undefined)S[k]=JSON.parse(JSON.stringify(d[k]));S.pv=PV;for(const st of STORES)if(S.stores[st.id]===undefined)S.stores[st.id]=true;}
+function merge(d){if(!d||typeof d!=="object")return;const keys=["people","stores","have","got","prices","route","tab","theme","extra","live","liveAt","pf","cf","fav"];if(d.pv===PV)keys.push("plan");else S.got={};for(const k of keys)if(d[k]!==undefined)S[k]=JSON.parse(JSON.stringify(d[k]));S.pv=PV;for(const st of STORES)if(S.stores[st.id]===undefined)S.stores[st.id]=true;}
 
 // ---- persistence (private per-viewer db doc, falls back to this browser) ----
 let docRef=null,saveTimer=null,saving=Promise.resolve();
@@ -637,13 +666,14 @@ function applyTheme(){
   for(const [k,v] of Object.entries(th.v))st.setProperty("--"+k,v);
   st.setProperty("--accent",th.dark?ac[0]:ac[1]);
   st.setProperty("--accent-fg",th.dark?"#000000":"#ffffff");
+  st.setProperty("--heart",th.dark?"#ff7a9c":"#b3123e"); // favorite heart, 3:1+ against every surface
   st.setProperty("color-scheme",th.dark?"dark":"light");
   const cur=S.theme||{};
   $("#bgOpts").innerHTML=Object.entries(THEMES).map(([k,t])=>`<button type="button" class="bgopt" data-bg="${k}" aria-pressed="${(cur.bg||"black")===k}" style="background:${t.v.bg};color:${t.v.fg}">${t.label}</button>`).join("");
   $("#accentOpts").innerHTML=Object.entries(ACCENTS).map(([k,a])=>`<button type="button" class="sw" data-accent="${k}" aria-pressed="${(cur.accent||"green")===k}" aria-label="${k} accent" title="${k}" style="background:${th.dark?a[0]:a[1]}"></button>`).join("");
 }
 // Keep keyboard/screen-reader focus on the same control after a redraw (render rebuilds most of the page's HTML).
-const FOCUS_KEYS=["step","d","store","have","got","edit","si","extra","tab","pf","cf","bg","accent","livecheck"];
+const FOCUS_KEYS=["fav","step","d","store","have","got","edit","si","extra","tab","pf","cf","bg","accent","livecheck"];
 function focusSelector(el){
   if(!el||el===document.body)return null;
   if(el.id&&el.id!=="q")return "#"+CSS.escape(el.id);
@@ -694,7 +724,7 @@ function shufflePlan(){
       let best=null,bw=-1;
       for(const r of pool){if(chosen.includes(r))continue;
         const keys=Object.keys(r.ing),shared=keys.filter(x=>used.has(x)).length/keys.length;
-        const w=(1/Math.pow(cost(r),0.8))*(1+0.6*shared)*(0.15+Math.random()*1.7);
+        const w=(1/Math.pow(cost(r),0.8))*(1+0.6*shared)*(0.15+Math.random()*1.7)*(S.fav&&S.fav[r.id]?2.5:1); // favorites come up much more often
         if(w>bw){bw=w;best=r;}}
       chosen.push(best);Object.keys(best.ing).forEach(x=>used.add(x));
     }
@@ -714,15 +744,20 @@ function shufflePlan(){
   const used$=RECIPES.reduce((s,r)=>s+servingCost(r)*plan[r.id],0)/7;
   toast(`New week: ${groups.reduce((s,[l])=>s+l.length,0)} different meals, about ${money(used$)} a day`);
 }
-const PLAN_FILTERS=[["all","All meals"],["b","Breakfast"],["m","Lunch & dinner"],["s","Snacks"]];
+const PLAN_FILTERS=[["all","All meals"],["fav","Favorites"],["b","Breakfast"],["m","Lunch & dinner"],["s","Snacks"]];
+const isFav=r=>!!(S.fav&&S.fav[r.id]);
+const pfMatch=(r,pf)=>pf==="all"||(pf==="fav"?isFav(r):slotOf(r)===pf);
 function renderPlan(){
   const meals=RECIPES.reduce((s,r)=>s+(S.plan[r.id]||0),0),pf=S.pf||"all";
   $("#panel-plan").innerHTML=`<div class="route"><p class="muted small" style="margin:0">Cheapest meals first. Set how many servings of each you'll eat this week${S.people>1?" (per person)":""}, or shuffle for a new week. ${meals} servings planned.</p><div class="btns"><button type="button" class="btn" id="shufflePlan">Shuffle my week</button>${PREV_PLAN?`<button type="button" class="btn ghost" id="undoPlan">Undo shuffle</button>`:""}<button type="button" class="btn ghost" id="resetPlan">Reset to sample week</button></div></div>
-  <div class="chips planfilter">${PLAN_FILTERS.map(([k,l])=>`<button type="button" class="chip" data-pf="${k}" aria-pressed="${pf===k}">${l} <span class="muted">${k==="all"?RECIPES.length:RECIPES.filter(r=>slotOf(r)===k).length}</span></button>`).join("")}</div>
+  <p class="small muted" style="margin:0 0 10px">Want more ideas? <a href="https://www.myplate.gov/myplate-kitchen/recipes" target="_blank" rel="noopener">USDA MyPlate Kitchen</a> has free low-cost recipes; choose its vegetarian or vegan filters. Tell Claude about any you like and it can add a budget version here.</p>
+  <div class="chips planfilter">${PLAN_FILTERS.map(([k,l])=>`<button type="button" class="chip" data-pf="${k}" aria-pressed="${pf===k}">${k==="fav"?'<span aria-hidden="true">♥ </span>':""}${l} <span class="muted">${RECIPES.filter(r=>pfMatch(r,k)).length}</span></button>`).join("")}</div>
   <div class="chips planfilter">${CUISINES.map(([k,l])=>`<button type="button" class="chip" data-cf="${k}" aria-pressed="${(S.cf||"all")===k}">${l} <span class="muted">${k==="all"?RECIPES.length:RECIPES.filter(r=>r.cui===k).length}</span></button>`).join("")}</div>
   <div class="recipes">`+
-  RECIPES.filter(r=>(pf==="all"||slotOf(r)===pf)&&((S.cf||"all")==="all"||r.cui===S.cf)).map(r=>({r,c:servingCost(r)})).sort((a,b)=>a.c-b.c).map(({r,c})=>{const n=S.plan[r.id]||0;return `<article class="rc${n?" on":""}" aria-labelledby="rh-${r.id}">
-    <div><div class="meal"><span class="pill ${slotOf(r)}">${r.meal}</span>${r.cui?`<span class="cui">${CUISINES.find(c=>c[0]===r.cui)[1]}</span>`:""}</div><h3 id="rh-${r.id}">${r.n}</h3></div>
+  (()=>{const shown=RECIPES.filter(r=>pfMatch(r,pf)&&((S.cf||"all")==="all"||r.cui===S.cf));return shown.length?"":`<p class="note">${pf==="fav"?"No favorites yet. Tap the heart on any recipe to save it here. Shuffle my week picks favorites more often.":"No recipes match both filters. Try another meal type or cuisine."}</p>`;})()+
+  RECIPES.filter(r=>pfMatch(r,pf)&&((S.cf||"all")==="all"||r.cui===S.cf)).map(r=>({r,c:servingCost(r)})).sort((a,b)=>a.c-b.c).map(({r,c})=>{const n=S.plan[r.id]||0,fv=isFav(r);return `<article class="rc${n?" on":""}" aria-labelledby="rh-${r.id}">
+    <div class="rhead"><div style="min-width:0"><div class="meal"><span class="pill ${slotOf(r)}">${r.meal}</span>${r.cui?`<span class="cui">${CUISINES.find(c=>c[0]===r.cui)[1]}</span>`:""}</div><h3 id="rh-${r.id}">${r.n}</h3></div>
+    <button type="button" class="favbtn" data-fav="${r.id}" aria-pressed="${fv}" aria-label="Favorite ${esc(r.n)}" title="${fv?"Remove from favorites":"Add to favorites"}"><span aria-hidden="true">${fv?"♥":"♡"}</span></button></div>
     <div class="facts"><div><b>${money(c)}</b><span>per serving</span></div><div><b>${r.cal}</b><span>calories</span></div><div><b>${r.pro} g</b><span>protein</span></div><div><b>${r.fib} g</b><span>fiber</span></div></div>
     <p class="why">${r.why}</p>
     <div class="stepper"><button type="button" data-step="${r.id}" data-d="-1" aria-label="Fewer servings of ${r.n}">−</button><span class="n" aria-hidden="true">${n}</span><button type="button" data-step="${r.id}" data-d="1" aria-label="More servings of ${r.n}">+</button><span class="muted small"><span class="sr">${n} </span>servings this week</span></div>
@@ -969,6 +1004,7 @@ document.addEventListener("click",e=>{
   if(t.id==="undoPlan"){if(PREV_PLAN){S.plan=PREV_PLAN;PREV_PLAN=null;save();render();toast("Previous week restored");}return;}
   if(t.dataset.pf){S.pf=t.dataset.pf;save();render();return;}
   if(t.dataset.cf){S.cf=t.dataset.cf;save();render();return;}
+  if(t.dataset.fav){const id=t.dataset.fav,r=RECIPES.find(x=>x.id===id);S.fav=S.fav||{};if(S.fav[id])delete S.fav[id];else S.fav[id]=true;save();render();announce(`${r.n} ${S.fav[id]?"added to":"removed from"} favorites`);return;}
   if(t.id==="resetPrices"){if(t.dataset.confirm){S.prices={};save();render();toast("Prices reset to estimates");}else{t.dataset.confirm="1";t.textContent="Tap again to reset all your prices";}return;}
   if(t.id==="clearGot"){S.got={};save();render();return;}
   if(t.id==="copyList"){copyList();return;}
