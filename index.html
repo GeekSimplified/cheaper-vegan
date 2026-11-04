@@ -129,6 +129,8 @@ td.p input{width:72px;text-align:right;font-family:var(--mono);padding:3px 4px;b
 .sp .u{display:block;font-size:10px;color:var(--muted);font-family:var(--mono)}
 .sp input{width:100%;text-align:center;font-family:var(--mono);padding:3px;border:1px solid var(--accent);border-radius:4px;background:var(--surface)}
 .sverdict{margin:0}
+.slive{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.slive .btn{padding:6px 12px;font-size:13px}
 .sempty{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:6px}
 .slinks{margin:8px 0 0}
 /* Live prices */
@@ -186,27 +188,29 @@ textarea.copyfallback{width:100%;min-height:160px;margin-top:10px;font-family:va
     </div>
   </div>
 
-  <div class="search">
-    <label class="lbl" for="q">Search an ingredient</label>
-    <div class="searchbar">
-      <input type="search" id="q" placeholder="Try: beans, rice, frozen peas, tofu" autocomplete="off" enterkeyhint="search">
-      <button type="button" class="btn ghost" id="qClear" hidden>Clear</button>
-    </div>
-    <div id="searchResults" aria-live="polite"></div>
-  </div>
-
   <div class="live" id="live">
     <div class="livehead">
       <div style="min-width:0">
-        <h2>Live prices</h2>
+        <h2>Live prices for my whole list</h2>
         <p class="small muted" id="liveSub">Checks every item on your shopping list on each store's website and uses the lowest real price.</p>
       </div>
       <div class="btns">
-        <button type="button" class="btn" id="liveGo">Get live prices</button>
+        <button type="button" class="btn" id="liveGo">Check my whole list</button>
+        <button type="button" class="btn ghost" id="liveCancel" hidden>Cancel</button>
         <button type="button" class="btn ghost" id="liveStop" hidden>Stop</button>
       </div>
     </div>
     <div id="liveProg" hidden><div class="bar"><span id="liveBar"></span></div><p class="small" id="liveMsg" aria-live="polite"></p></div>
+  </div>
+
+  <div class="search">
+    <label class="lbl" for="q">Search an ingredient</label>
+    <div class="searchbar">
+      <input type="search" id="q" placeholder="Try: beans, rice, frozen peas, tofu" autocomplete="off" enterkeyhint="search">
+      <button type="button" class="btn" id="qGo">Search</button>
+      <button type="button" class="btn ghost" id="qClear" hidden>Clear</button>
+    </div>
+    <div id="searchResults" aria-live="polite"></div>
   </div>
 
   <nav class="tabs" role="tablist">
@@ -553,7 +557,8 @@ function renderSearch(){
     return `<article class="scard"><div class="shead"><div style="min-width:0"><h3>${it.n}</h3><div class="small muted">${it.pkg} · ${it.cat}${inPlan.has(id)?" · in your meal plan":""}</div></div>
       <div class="sadd">${n?`<div class="stepper"><button type="button" data-extra="${id}" data-d="-1" aria-label="One fewer ${it.n}">−</button><span class="n">${n}</span><button type="button" data-extra="${id}" data-d="1" aria-label="One more ${it.n}">+</button></div><span class="small muted">on list</span>`:`<button type="button" class="btn" data-extra="${id}" data-d="1">Add to list</button>`}</div></div>
       <div class="sprices">${prices.map(({i,p})=>{const on=S.stores[STORES[i].id];return `<div class="sp${!on?" off":""}"><span class="sn">${STORES[i].name}</span><div class="p${b&&b.i===i?" low":""}${p==null?" na":""}"><button type="button" data-edit="${id}" data-si="${i}" aria-label="Edit ${it.n} price at ${STORES[i].name}">${p==null?"not carried":money(p)+(isEdited(id,i)?'<span class="edited"> •</span>':"")}</button>${p!=null?`<span class="u">${unitPrice(p,it)}</span>`:""}${liveMark(id,i)}</div></div>`}).join("")}</div>
-      ${b?`<p class="small sverdict">Cheapest at <b>${STORES[b.i].name}</b>${hi>b.p?`, saving ${money(hi-b.p)} over the priciest of your stores`:""}.</p>`:`<p class="small muted sverdict">Not carried at the stores you have turned on.</p>`}
+      ${b?`<p class="small sverdict">Cheapest at <b>${STORES[b.i].name}</b>${hi>b.p?`, saving ${money(hi-b.p)} over the priciest of your stores`:""}.${isLive(id,b.i)?` Buy: ${esc(liveCell(id,b.i).prod)}.`:""}</p>`:`<p class="small muted sverdict">Not carried at the stores you have turned on.</p>`}
+      ${liveOK?`<div class="slive">${liveFor===id?`<span class="small">Checking ${idx.length} store websites…</span>`:`<button type="button" class="btn ghost" data-livecheck="${id}"${liveCtl?" disabled":""}>Check live prices</button><span class="small muted">${idx.length} stores, about ${Math.max(1,Math.round(idx.length*7/60*2)/2)} min</span>`}</div>`:""}
     </article>`}).join("")+`</div>`+links;
 }
 
@@ -617,8 +622,12 @@ function applyLive(id,i,r){
   delete LIVE_FAIL[id+":"+i];
   return true;
 }
-async function runLive(){
-  const items=needs().filter(n=>!n.have&&n.pk).map(n=>n.id),stores=enabledIdx();
+let liveOK=null,liveFor=null; // liveOK: can this view drive the browser; liveFor: item id when checking one searched item
+function disarmLive(){const g=$("#liveGo");delete g.dataset.armed;g.textContent="Check my whole list";$("#liveCancel").hidden=true;}
+async function runLive(onlyIds){
+  disarmLive();
+  const items=onlyIds||needs().filter(n=>!n.have&&n.pk).map(n=>n.id),stores=enabledIdx();
+  liveFor=onlyIds&&onlyIds.length===1?onlyIds[0]:null;
   $("#liveProg").hidden=false;
   if(!items.length||!stores.length){liveMsg("Add meals or items to your shopping list first.",0);return;}
   liveMsg("Connecting to the Claude desktop app's browser…",0);
@@ -658,18 +667,25 @@ async function runLive(){
   }finally{
     if(ok)S.liveAt=Date.now();
     save();render();
-    $("#liveGo").disabled=false;$("#liveStop").hidden=true;liveCtl=null;
+    $("#liveGo").disabled=false;$("#liveStop").hidden=true;liveCtl=null;liveFor=null;render();
     const summary=`${ok} live price${ok===1?"":"s"} found${miss?`, ${miss} not found (marked “not found”; estimates kept)`:""}.`;
     liveMsg(stopMsg?stopMsg+" "+summary:sig.aborted?"Stopped. "+summary:"Done. "+summary+" Your list now uses the lowest prices.",stopMsg||sig.aborted?done/tasks.length:1);
   }
 }
-(async()=>{const env=await getLiveEnv().catch(()=>null);if(!env){$("#liveGo").disabled=true;$("#liveSub").textContent="Live prices work when Cheaper Cart is open in the Claude desktop app. This copy uses estimates and the prices you type.";}})();
+(async()=>{const env=await getLiveEnv().catch(()=>null);liveOK=!!env;renderSearch();if(!env){$("#liveGo").disabled=true;$("#liveSub").textContent="Live prices work when Cheaper Cart is open in the Claude desktop app. This copy uses estimates and the prices you type.";}})();
 
 // ---- events ----
 document.addEventListener("click",e=>{
   const t=e.target.closest("button");if(!t)return;
   if(t.dataset.extra){const id=t.dataset.extra,n=Math.max(0,Math.min(20,(S.extra[id]||0)+ +t.dataset.d));if(n)S.extra[id]=n;else delete S.extra[id];if(n&&S.have[id])delete S.have[id];save();render();if(+t.dataset.d>0&&n===1)toast("Added to your shopping list");return;}
-  if(t.id==="liveGo"){runLive();return;}
+  if(t.id==="liveGo"){ // two-step start so a stray click never kicks off a long run
+    if(t.dataset.armed){runLive();return;}
+    const n=needs().filter(x=>!x.have&&x.pk).length,s=enabledIdx().length;
+    if(!n||!s){$("#liveProg").hidden=false;liveMsg("Add meals or items to your shopping list first.",0);return;}
+    t.dataset.armed="1";t.textContent=`Start: ${n*s} lookups, about ${Math.max(1,Math.round(n*s*7/60))} min`;$("#liveCancel").hidden=false;return;}
+  if(t.id==="liveCancel"){disarmLive();return;}
+  if(t.dataset.livecheck){if(!liveCtl)runLive([t.dataset.livecheck]);return;}
+  if(t.id==="qGo"){renderSearch();if(!$("#q").value.trim())$("#q").focus();return;}
   if(t.id==="liveStop"){if(liveCtl)liveCtl.abort();return;}
   if(t.id==="qClear"){$("#q").value="";renderSearch();$("#q").focus();return;}
   if(t.dataset.bg){S.theme={...S.theme,bg:t.dataset.bg};save();render();return;}
@@ -686,7 +702,7 @@ document.addEventListener("click",e=>{
   if(t.id==="copyList"){copyList();return;}
 });
 $("#q").addEventListener("input",renderSearch);
-$("#q").addEventListener("keydown",e=>{if(e.key==="Escape"){e.target.value="";renderSearch();}});
+$("#q").addEventListener("keydown",e=>{if(e.key==="Escape"){e.target.value="";renderSearch();}if(e.key==="Enter"){e.preventDefault();renderSearch();}});
 document.addEventListener("change",e=>{
   const t=e.target;
   if(t.dataset&&t.dataset.got){const id=t.dataset.got;if(t.checked)S.got[id]=true;else delete S.got[id];save();render();}
