@@ -289,7 +289,7 @@ td.p.na{font-size:13px}
   <header class="top">
     <div>
       <h1 class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 48 48" focusable="false"><circle cx="24" cy="24" r="22" class="logo-bg"/><path d="M14 33c0-11 7-18 21-18 0 13-7 20-18 20" class="logo-leaf"/><path d="M14 33l10-10" class="logo-vein"/></svg></span>Cheaper Vegan</h1>
-      <p class="lede">Pick rock-bottom-cost, high-nutrition vegan meals for the week, most under 50¢ a serving. The app builds your shopping list and finds the cheapest store for each item across Aldi, Walmart, Target, Cub Foods and Hy-Vee.</p>
+      <p class="lede">Pick rock-bottom-cost, high-nutrition vegan meals for the week, most under 50¢ a serving. The app builds your shopping list and finds the cheapest store for each item across Aldi, Walmart, Target, Cub Foods, Hy-Vee and Fresh Thyme.</p>
     </div>
     <details class="theme" id="themeMenu">
       <summary><span class="dot" aria-hidden="true"></span>Theme</summary>
@@ -355,13 +355,13 @@ td.p.na{font-size:13px}
   <section class="panel" id="panel-pantry" role="tabpanel" aria-labelledby="tab-pantry" hidden></section>
 
   <div class="note">
-    <b>About these prices.</b> Prices marked <span class="livetag">live</span> were read from the store's website by <b>Get live prices</b>. All others are estimates of typical Twin Cities store-brand prices as of November 2026 (Hy-Vee estimates are rougher). Online pickup and delivery prices can differ from shelf prices. Tap any price to type the real one; your prices are saved and used everywhere.
+    <b>About these prices.</b> Prices marked <span class="livetag">live</span> were read from the store's website by <b>Get live prices</b>. All others are estimates of typical Twin Cities store-brand prices as of November 2026 (Hy-Vee and Fresh Thyme estimates are rougher). Online pickup and delivery prices can differ from shelf prices. Tap any price to type the real one; your prices are saved and used everywhere.
     <ul>
-      <li><b>Before your first live check:</b> in the Claude app's browser, open each store's website once and choose your store for pickup (near 55372: Aldi Shakopee, Target Savage, and your nearest Cub and Hy-Vee). Live prices then match your stores.</li>
+      <li><b>Before your first live check:</b> in the Claude app's browser, open each store's website once and choose your store for pickup (near 55372: Aldi Shakopee, Target Savage, and your nearest Cub and Hy-Vee; Fresh Thyme is set to Savage). Live prices then match your stores.</li>
     </ul>
     <ul>
-      <li>All five stores accept SNAP/EBT.</li>
-      <li>Check prices: <a href="https://www.aldi.us" target="_blank" rel="noopener">aldi.us</a> · <a href="https://www.walmart.com" target="_blank" rel="noopener">walmart.com</a> · <a href="https://www.target.com" target="_blank" rel="noopener">target.com</a> · <a href="https://www.cub.com" target="_blank" rel="noopener">cub.com</a> · <a href="https://www.hy-vee.com/aisles-online" target="_blank" rel="noopener">hy-vee.com</a></li>
+      <li>All six stores accept SNAP/EBT.</li>
+      <li>Check prices: <a href="https://www.aldi.us" target="_blank" rel="noopener">aldi.us</a> · <a href="https://www.walmart.com" target="_blank" rel="noopener">walmart.com</a> · <a href="https://www.target.com" target="_blank" rel="noopener">target.com</a> · <a href="https://www.cub.com" target="_blank" rel="noopener">cub.com</a> · <a href="https://www.hy-vee.com/aisles-online" target="_blank" rel="noopener">hy-vee.com</a> · <a href="https://ww2.freshthyme.com/sm/planning/rsid/506" target="_blank" rel="noopener">freshthyme.com (Savage)</a></li>
       <li>Nutrition numbers are estimates per serving. A vegan diet needs a vitamin B12 supplement; a cheap store-brand bottle lasts months.</li>
       <li>Every meal shares the same ~20 staples, so the bags and jars you buy get used up across the week instead of going to waste.</li>
     </ul>
@@ -373,7 +373,7 @@ td.p.na{font-size:13px}
 <script>
 (function(){
 const STORES=[
-  {id:"aldi",name:"Aldi"},{id:"walmart",name:"Walmart"},{id:"target",name:"Target"},{id:"cub",name:"Cub Foods"},{id:"hyvee",name:"Hy-Vee"}];
+  {id:"aldi",name:"Aldi"},{id:"walmart",name:"Walmart"},{id:"target",name:"Target"},{id:"cub",name:"Cub Foods"},{id:"hyvee",name:"Hy-Vee"},{id:"freshthyme",name:"Fresh Thyme"}];
 // prices: [Aldi, Walmart, Target, Cub]; null = not usually carried
 const ITEMS={
  oats:{n:"Old-fashioned oats",pkg:"42 oz canister",size:42,u:"oz",cat:"Grains",p:[3.29,3.42,3.79,4.49]},
@@ -454,6 +454,13 @@ for(const v of Object.values(EXTRA))v.x=true;
 Object.assign(ITEMS,EXTRA);
 // Hy-Vee estimate when an item lists four prices: about 10% above Cub (matches spot checks), ending in 9
 for(const it of Object.values(ITEMS))if(it.p.length<5)it.p.push(it.p[3]==null?null:Math.round(it.p[3]*1.1*10)/10-0.01);
+// Fresh Thyme (Savage) prices from its website, Nov 2026, per the app's package (bulk oats are sold by the pound).
+// null = not sold there in a comparable size. Other items: estimate about 15% above Cub.
+const FT_REAL={oats:7.06,rice:8.99,pasta:4.49,bread:4.99,lentils:3.49,pinto:6.98,black:6.98,splitpea:2.92,pb:7.48,banana:0.70,
+ carrots:2.99,onions:2.99,garlic:1.49,potatoes:5.95,cabbage:2.97,mixveg:2.39,tomatoes:1.13,oil:5.69,chili:2.39,cumin:2.99,
+ ctort:1.99,soysauce:5.09,tofu:2.79,tofuxf:2.44,tofusuper:4.46,tofusilk:4.43,tofusoft:2.79,cchick:1.09,cblack:1.09,cpinto:1.39,
+ broccoli:2.39,spinach:6.59,peas:2.39,fcalif:3.14,fedamame:2.99,fpepper:null,fberries:null,fcauli:3.59,fhash:4.39,psauce:3.19,spaghetti:1.89};
+for(const [id,it] of Object.entries(ITEMS))if(it.p.length<6)it.p.push(id in FT_REAL?FT_REAL[id]:it.p[3]==null?null:Math.round(it.p[3]*1.15*10)/10-0.01);
 const ALIAS={banana:"fruit",apples:"fruit",lentils:"legumes",pinto:"legumes",black:"legumes",splitpea:"legumes peas",pb:"peanuts nut butter",oil:"cooking canola",pasta:"noodles",oats:"oatmeal cereal",tomatoes:"canned"};
 const CATS=["Produce","Beans & protein","Grains","Dairy aisle","Frozen","Canned & pantry"];
 // per-serving amounts in each item's unit; nutrition per serving (kcal, protein g, fiber g)
@@ -702,7 +709,7 @@ RECIPES.forEach(r=>{r.n=titleCase(r.n);});
 const DEFAULT_PLAN={ptoast:7,oats:7,mujadara:4,pbs:5,pinto:6,splitpea:3,friedrice:2,baked:2,lentil:0,skillet:0,pasta:0,chili:2};
 
 const PV=2; // bump when the recipe set changes so old saved plans don't point at removed meals
-let S={pv:PV,plan:{...DEFAULT_PLAN},people:1,stores:{aldi:true,walmart:true,target:true,cub:true,hyvee:true},have:{},got:{},prices:{},route:"mix",tab:"plan",theme:{bg:"black",accent:"green"},extra:{}};
+let S={pv:PV,plan:{...DEFAULT_PLAN},people:1,stores:{aldi:true,walmart:true,target:true,cub:true,hyvee:true,freshthyme:true},have:{},got:{},prices:{},route:"mix",tab:"plan",theme:{bg:"black",accent:"green"},extra:{}};
 const LS="cheaper-cart-v1";
 try{const raw=localStorage.getItem(LS);if(raw)merge(JSON.parse(raw));}catch(e){}
 function merge(d){if(!d||typeof d!=="object")return;const keys=["people","stores","have","got","prices","route","tab","theme","extra","live","liveAt","pf","cf","fav","pantry"];if(d.pv===PV)keys.push("plan");else S.got={};for(const k of keys)if(d[k]!==undefined)S[k]=JSON.parse(JSON.stringify(d[k]));S.pv=PV;for(const st of STORES)if(S.stores[st.id]===undefined)S.stores[st.id]=true;}
@@ -733,7 +740,7 @@ const money=v=>"$"+v.toFixed(2);
 const enabledIdx=()=>STORES.map((s,i)=>S.stores[s.id]?i:-1).filter(i=>i>=0);
 // Price priority: a price you typed > a live price read from the store's site > the built-in estimate.
 // A live cell is {raw: shelf price, pk: how many of our packages that product equals, prod: product name, at: time}.
-// SHARED_LIVE: prices Claude checked on the store websites and saved in this artifact's database (collection "prices", one doc per item: {cells:[5 × {raw,pk,prod,at}|null]})
+// SHARED_LIVE: prices Claude checked on the store websites and saved in this artifact's database (collection "prices", one doc per item: {cells:[6 × {raw,pk,prod,at}|null], one per store in STORES order})
 const SHARED_LIVE={};let sharedAt=0;
 function liveCell(id,i){
   const ok=c=>c&&c.raw>0&&c.pk>0?c:null;
@@ -993,7 +1000,7 @@ function perUnit(p,it){const v=p/it.size;return v<1?(Math.round(v*1000)/10).toFi
 function unitPrice(p,it){const v=p/it.size;return (v<0.1?"$"+v.toFixed(3):"$"+v.toFixed(2))+"/"+it.u.replace("fl oz","fl oz");}
 
 // ---- search ----
-const STORE_SEARCH={aldi:"https://www.aldi.us/store/aldi/s?k=",walmart:"https://www.walmart.com/search?q=",target:"https://www.target.com/s?searchTerm=",cub:"https://www.cub.com/store/cub/s?k=",hyvee:"https://www.hy-vee.com/aisles-online/search?search="};
+const STORE_SEARCH={aldi:"https://www.aldi.us/store/aldi/s?k=",walmart:"https://www.walmart.com/search?q=",target:"https://www.target.com/s?searchTerm=",cub:"https://www.cub.com/store/cub/s?k=",hyvee:"https://www.hy-vee.com/aisles-online/search?search=",freshthyme:"https://ww2.freshthyme.com/sm/planning/rsid/506/results?q="};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const stem=w=>w.length>4&&w.endsWith("es")&&!w.endsWith("ses")?w.slice(0,-2):w.length>3&&w.endsWith("s")?w.slice(0,-1):w;
 function searchItems(q){
@@ -1154,7 +1161,8 @@ function renderLiveStatus(){
     if(!window.claude||!window.claude.use)return;
     const db=await window.claude.use("db");if(!db)return;
     db.collection("prices").onSnapshot(snap=>{
-      for(const d of snap.docs){const v=d.data()||{};if(ITEMS[d.id]&&Array.isArray(v.cells))SHARED_LIVE[d.id]=v.cells;}
+      // cells holds the first five stores; Fresh Thyme (added later) is saved in its own field so older docs needn't be rewritten
+      for(const d of snap.docs){const v=d.data()||{};if(!ITEMS[d.id])continue;const c=Array.isArray(v.cells)?[...v.cells]:[];if(v.freshthyme)c[5]=v.freshthyme;if(c.length)SHARED_LIVE[d.id]=c;}
       sharedAt=snap.docs.reduce((m,d)=>Math.max(m,Number((d.data()||{}).at)||0),0);
       render();
     },()=>{});
