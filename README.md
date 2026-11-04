@@ -1,14 +1,14 @@
 # Cheaper Vegan
 
-A single-page app for eating well on an extreme budget. It plans very cheap, high-nutrition vegan meals (13¢–66¢ a serving), builds a shopping list, and compares prices across **Aldi, Walmart, Target, Cub Foods and Hy-Vee**.
+A single-page app for eating well on an extreme budget. It plans very cheap, high-nutrition vegan meals (13¢–83¢ a serving), builds a shopping list, and compares prices across **Aldi, Walmart, Target, Cub Foods and Hy-Vee**.
 
 ## Features
 
-- **Plan meals:** 42 meals you can favorite (favorites come up more often in Shuffle), including Mexican, Chinese and other Asian dishes (with a Shuffle my week button and meal-type and cuisine filters), built on about 20 cheap staples (dry beans, lentils, split peas, oats, rice, peanut butter, potatoes, cabbage, carrots, onions, bananas), sorted cheapest first. Each shows its cost per serving, calories, protein and fiber.
+- **Plan meals:** 49 meals you can favorite (favorites come up more often in Shuffle), including Mexican, Chinese and other Asian dishes (with a Shuffle my week button and meal-type and cuisine filters), built on about 20 cheap staples (dry beans, lentils, split peas, oats, rice, peanut butter, potatoes, cabbage, carrots, onions, bananas), sorted cheapest first. Each shows its cost per serving, calories, protein and fiber.
 - **Shopping list:** Adds up ingredients across the week and rounds up to whole packages. Groups items by store, lets you mark what you already have and check items off as you shop, and copies the list as text.
 - **Compare prices:** Shows each item's price at each store with the cheapest highlighted. Totals the trip for each store on its own and for the cheapest mix of stores.
-- **Pantry:** A recommended vegan pantry list in 8 groups (starter staples plus nice-to-haves and vegan nutrition must-haves like B12), with cheapest prices, have-it checkboxes, and one button to add missing starter items to your list.
-- **Ingredient search:** Search about 60 groceries to compare prices at all four stores, add any of them to your list, or jump to each store's website to check today's price.
+- **Pantry:** A recommended vegan pantry list in 8 groups (starter staples, a well-stocked freezer, plus nice-to-haves and vegan nutrition must-haves like B12), with cheapest prices, have-it checkboxes, and one button to add missing starter items to your list.
+- **Ingredient search:** Search about 75 groceries, including 14 frozen vegetables and fruits, to compare prices at all five stores, add any of them to your list, or jump to each store's website to check today's price.
 - **Live prices (Claude desktop app):** Ask Claude in the Claude app to "refresh Cheaper Vegan prices". Claude checks each store's website for your local stores and saves the results to the app, which then rebuilds your list around the lowest real prices, with the exact product to buy. Target blocks automated checks, so Target uses estimates. The GitHub Pages copy uses estimates only.
 - **Your own prices:** Tap any price to type in the real shelf price. It's saved and used everywhere.
 

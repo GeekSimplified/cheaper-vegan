@@ -425,6 +425,15 @@ const EXTRA={
  broccoli:{n:"Frozen broccoli",pkg:"12 oz bag",size:12,u:"oz",cat:"Frozen",p:[1.29,1.24,1.49,1.99]},
  peas:{n:"Frozen peas",pkg:"12 oz bag",size:12,u:"oz",cat:"Frozen",p:[1.15,1.12,1.29,1.79]},
  corn:{n:"Frozen corn",pkg:"12 oz bag",size:12,u:"oz",cat:"Frozen",p:[1.15,1.12,1.29,1.79]},
+ fgreenbean:{n:"Frozen cut green beans",pkg:"12 oz bag",size:12,u:"oz",cat:"Frozen",p:[1.15,1.12,1.29,1.79]},
+ fcauli:{n:"Frozen cauliflower",pkg:"12 oz bag",size:12,u:"oz",cat:"Frozen",p:[1.29,1.24,1.49,1.99],k:"rice cauliflower"},
+ fcalif:{n:"Frozen California blend (broccoli, cauliflower, carrots)",pkg:"12 oz bag",size:12,u:"oz",cat:"Frozen",p:[1.29,1.24,1.49,1.99],k:"vegetable medley mixed"},
+ fstirfry:{n:"Frozen stir-fry vegetables",pkg:"16 oz bag",size:16,u:"oz",cat:"Frozen",p:[1.99,1.98,2.29,2.99],k:"asian blend mixed"},
+ fpepper:{n:"Frozen pepper & onion blend (fajita mix)",pkg:"12 oz bag",size:12,u:"oz",cat:"Frozen",p:[1.39,1.48,1.69,2.29],k:"peppers onions fajita"},
+ fedamame:{n:"Frozen shelled edamame",pkg:"12 oz bag",size:12,u:"oz",cat:"Frozen",p:[2.19,2.18,2.49,2.99],k:"soybeans protein"},
+ fmixbig:{n:"Frozen mixed vegetables, family size",pkg:"32 oz bag",size:32,u:"oz",cat:"Frozen",p:[2.49,2.52,2.89,3.49],k:"big bulk"},
+ fhash:{n:"Frozen diced hash brown potatoes",pkg:"32 oz bag",size:32,u:"oz",cat:"Frozen",p:[2.19,2.24,2.49,2.99],k:"potatoes southern style"},
+ fberries:{n:"Frozen mixed berries",pkg:"16 oz bag",size:16,u:"oz",cat:"Frozen",p:[2.79,2.92,3.29,3.99],k:"fruit smoothie"},
  ccorn:{n:"Canned corn",pkg:"15 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.69,0.72,0.79,1.09]},
  cgreen:{n:"Canned green beans",pkg:"14.5 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.69,0.72,0.79,1.09]},
  tsauce:{n:"Tomato sauce",pkg:"15 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.59,0.64,0.79,1.09]},
@@ -622,7 +631,36 @@ const RECIPES=[
  {id:"aloo",n:"Indian-style cabbage & potato over rice",meal:"Dinner",cui:"as",cal:340,pro:7,fib:8,
   why:"Based on aloo patta gobhi, a cheap North Indian everyday dish.",
   ing:{potatoes:5,cabbage:4,rice:1.5,onions:0.5,cumin:0.5,chili:0.25,oil:0.15},
-  steps:["Cook rice.","Fry cumin and onion in oil, add diced potato and cook 10 minutes.","Add shredded cabbage and chili powder, cover, and cook 10 minutes until tender."]}
+  steps:["Cook rice.","Fry cumin and onion in oil, add diced potato and cook 10 minutes.","Add shredded cabbage and chili powder, cover, and cook 10 minutes until tender."]},
+ // --- frozen-vegetable recipes ---
+ {id:"broctofu",n:"Garlic broccoli & tofu stir-fry",meal:"Dinner",cui:"cn",cal:360,pro:14,fib:5,
+  why:"A bag of frozen broccoli goes straight into the pan, no chopping.",
+  ing:{tofu:2.5,broccoli:2.5,rice:2,garlic:1,soysauce:0.5,oil:0.1},
+  steps:["Cook rice.","Brown cubed tofu in oil, then add garlic and frozen broccoli and cook 5 minutes.","Add soy sauce and a splash of water, toss, and serve over rice."]},
+ {id:"spinachdal",n:"Spinach & lentil dal over rice",meal:"Dinner",cui:"as",cal:380,pro:17,fib:13,
+  why:"Frozen spinach adds iron and folate to cheap red or brown lentils.",
+  ing:{lentils:1.5,spinach:2,rice:1.5,onions:0.5,garlic:1,tomatoes:0.25,cumin:0.5,oil:0.1},
+  steps:["Cook rice.","Simmer lentils in water 20 minutes until soft.","Fry onion, garlic and cumin in oil; stir into the lentils with tomatoes and frozen spinach and cook 5 minutes."]},
+ {id:"matar",n:"Potato & pea curry (aloo matar)",meal:"Dinner",cui:"as",cal:390,pro:10,fib:9,
+  why:"Frozen peas add protein and sweetness to a filling potato curry.",
+  ing:{potatoes:5,peas:2.5,rice:1.5,tomatoes:0.25,onions:1,cumin:0.5,chili:0.25,oil:0.15},
+  steps:["Cook rice.","Fry onion and cumin in oil, add diced potato, tomatoes and ½ cup water; cover and cook 12 minutes.","Stir in frozen peas and chili powder, cook 5 minutes, and serve over rice."]},
+ {id:"fajita",n:"Black bean fajita tacos",meal:"Dinner",cui:"mx",cal:380,pro:15,fib:13,
+  why:"A frozen pepper and onion blend costs far less than fresh peppers.",
+  ing:{ctort:3,black:1.5,fpepper:2.5,chili:0.5,cumin:0.25,oil:0.1},
+  steps:["Fry the frozen peppers and onions in oil over high heat until browned, about 8 minutes.","Add cooked black beans, chili powder and cumin and heat through.","Fill warm tortillas."]},
+ {id:"freezersoup",n:"Freezer vegetable & lentil soup",meal:"Lunch or dinner",cal:300,pro:14,fib:10,
+  why:"Any frozen vegetable blend works. Makes a big pot that freezes well.",
+  ing:{fcalif:3,lentils:1,pasta:1,tomatoes:0.25,onions:0.5,garlic:1,oil:0.1},
+  steps:["Soften onion and garlic in oil.","Add lentils, tomatoes and 2 cups water per serving; simmer 15 minutes.","Add frozen vegetables and broken spaghetti and simmer 10 more minutes. Salt to taste."]},
+ {id:"berryoats",n:"Berry oatmeal",meal:"Breakfast",cal:300,pro:9,fib:8,
+  why:"Frozen berries are cheaper than fresh and add vitamin C and fiber.",
+  ing:{oats:1.4,fberries:2.5,pb:0.4},
+  steps:["Simmer ½ cup oats in 1 cup water for 5 minutes, adding the frozen berries for the last 2 minutes.","Stir in 2 teaspoons peanut butter."]},
+ {id:"edamame",n:"Salted edamame",meal:"Snack",cal:110,pro:10,fib:4,
+  why:"A high-protein snack: microwave from frozen in 3 minutes.",
+  ing:{fedamame:2.5},
+  steps:["Microwave the frozen edamame with a splash of water, covered, for 3 minutes.","Sprinkle with salt."]}
 ];
 // cuisine tags: mx Mexican, cn Chinese, as other Asian (Indian, Thai, Korean)
 const CUISINES=[["all","Any cuisine"],["mx","Mexican"],["cn","Chinese"],["as","Other Asian"]];
@@ -894,7 +932,9 @@ const PANTRY=[
  {h:"Produce that keeps",note:"These last weeks in a cool, dark place.",items:[
   ["onions",1,"The flavor base for most recipes."],["potatoes",1,"The cheapest filling vegetable."],["carrots",1,"Vitamin A; lasts weeks in the fridge."],["cabbage",1,"Lasts weeks and costs about 80¢ a pound."]]},
  {h:"Freezer",note:"Frozen vegetables are as nutritious as fresh and never go bad.",items:[
-  ["mixveg",1,"Add to rice, noodles, soups and curry."],["spinach",0,"Iron and folate for soups and pasta."],["peas",0,"Extra protein and sweetness."]]},
+  ["mixveg",1,"Add to rice, noodles, soups and curry."],["fmixbig",0,"The family-size bag usually costs less per ounce."],["broccoli",0,"Stir-fries and pasta; vitamin C and calcium."],
+  ["spinach",0,"Iron and folate for soups, dal and pasta."],["peas",0,"Extra protein and sweetness."],["fedamame",0,"High-protein snack or stir-fry add-in."],
+  ["fpepper",0,"Fajitas and tacos for far less than fresh peppers."],["fberries",0,"Oatmeal and smoothies; cheaper than fresh."]]},
  {h:"Vegan nutrition must-haves",note:"Food can't cover these well on a vegan diet, so plan for them.",items:[
   ["soymilk",0,"Fortified soy milk adds calcium, vitamin D and B12."],
   [null,0,"Vitamin B12 supplement: the one thing every vegan needs. A store-brand bottle costs a few dollars and lasts months.","Vitamin B12 supplement"]]}
@@ -965,7 +1005,7 @@ function searchItems(q){
     const score=toks.reduce((s,t)=>s+(name.startsWith(t)?3:name.includes(t)?2:0),0);
     out.push({id,score});
   }
-  return out.sort((a,b)=>b.score-a.score||ITEMS[a.id].n.localeCompare(ITEMS[b.id].n)).slice(0,12).map(o=>o.id);
+  return out.sort((a,b)=>b.score-a.score||ITEMS[a.id].n.localeCompare(ITEMS[b.id].n)).slice(0,20).map(o=>o.id);
 }
 function renderSearch(){
   const q=$("#q").value.trim(),box=$("#searchResults");$("#qClear").hidden=!q;
