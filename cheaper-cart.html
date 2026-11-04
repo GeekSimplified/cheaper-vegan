@@ -183,11 +183,13 @@ textarea.copyfallback{width:100%;min-height:160px;margin-top:10px;font-family:va
   <div class="live" id="live">
     <div class="livehead">
       <div style="min-width:0">
-        <h2>Live prices for my whole list</h2>
-        <p class="small muted" id="liveSub">Checks every item on your shopping list on each store's website and uses the lowest real price.</p>
+        <h2>Live prices</h2>
+        <p class="small" id="liveStatus">No live prices yet.</p>
+        <p class="small muted">To refresh, ask Claude in the Claude desktop app chat: <b>“Refresh Cheaper Cart prices.”</b> Claude checks each store's website for your 55372-area stores and the new prices appear here automatically.</p>
+        <p class="small muted" id="liveSub" hidden></p>
       </div>
       <div class="btns">
-        <button type="button" class="btn" id="liveGo">Check my whole list</button>
+        <button type="button" class="btn" id="liveGo" hidden>Check my whole list</button>
         <button type="button" class="btn ghost" id="liveCancel" hidden>Cancel</button>
         <button type="button" class="btn ghost" id="liveStop" hidden>Stop</button>
       </div>
@@ -388,7 +390,14 @@ const money=v=>"$"+v.toFixed(2);
 const enabledIdx=()=>STORES.map((s,i)=>S.stores[s.id]?i:-1).filter(i=>i>=0);
 // Price priority: a price you typed > a live price read from the store's site > the built-in estimate.
 // A live cell is {raw: shelf price, pk: how many of our packages that product equals, prod: product name, at: time}.
-function liveCell(id,i){const l=S.live&&S.live[id];return l&&l[i]&&l[i].raw>0&&l[i].pk>0?l[i]:null;}
+// SHARED_LIVE: prices Claude checked on the store websites and saved in this artifact's database (collection "prices", one doc per item: {cells:[5 × {raw,pk,prod,at}|null]})
+const SHARED_LIVE={};let sharedAt=0;
+function liveCell(id,i){
+  const ok=c=>c&&c.raw>0&&c.pk>0?c:null;
+  const a=ok(S.live&&S.live[id]&&S.live[id][i]),b=ok(SHARED_LIVE[id]&&SHARED_LIVE[id][i]);
+  return a&&b?(a.at>=b.at?a:b):a||b;
+}
+const lastLiveAt=()=>Math.max(S.liveAt||0,sharedAt);
 function price(id,i){const o=S.prices[id];if(o&&o[i]!=null)return o[i];const L=liveCell(id,i);if(L)return Math.round(L.raw/L.pk*100)/100;const p=ITEMS[id].p[i];return p==null?null:Math.round(p*100)/100;}
 function isEdited(id,i){const o=S.prices[id];return !!(o&&o[i]!=null);}
 function isLive(id,i){return !isEdited(id,i)&&!!liveCell(id,i);}
@@ -465,7 +474,7 @@ function render(){
   if(S.tab==="list")renderList(list);
   if(S.tab==="compare")renderCompare(list);
   renderSearch();
-  if(!liveCtl&&!$("#liveGo").disabled)$("#liveSub").textContent=liveSubText();
+  renderLiveStatus();
 }
 function routeLabel(){if(S.route==="mix")return "cheapest mix of "+enabledIdx().map(i=>STORES[i].name).join(", ");return STORES[+S.route].name+" only";}
 
@@ -510,7 +519,7 @@ function renderCompare(list){
   let h=`<div class="cards"><div class="card best"><div class="t">Cheapest mix</div><div class="v">${money(mix)}</div><div class="small muted">each item where it's cheapest${worst>mix?` · saves ${money(worst-mix)}`:""}</div></div>`+
    singles.map(s=>`<div class="card${bestSingle&&bestSingle.i===s.i?" best":""}"><div class="t">${STORES[s.i].name} only</div><div class="v">${money(s.t)}</div><div class="small muted">${s.miss?`${s.miss} item${s.miss>1?"s":""} not carried`:"everything on the list"}${bestSingle&&bestSingle.i===s.i?" · best single store":""}</div></div>`).join("")+`</div>`;
   if(!idx.length)h+=`<p class="muted">Turn on at least one store above.</p>`;
-  h+=`<p class="small muted">Prices are per package size shown. Yellow tag = cheapest among your stores. <span class="livetag">live</span> = read from the store's site${S.liveAt?" on "+new Date(S.liveAt).toLocaleString([], {month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}):""}; hover or long-press it to see the product. <span class="edited">•</span> = a price you typed. Tap a price to change it. <button type="button" class="linkbtn" id="resetPrices">Reset my prices</button></p>`;
+  h+=`<p class="small muted">Prices are per package size shown. Yellow tag = cheapest among your stores. <span class="livetag">live</span> = read from the store's site${lastLiveAt()?" on "+new Date(lastLiveAt()).toLocaleString([], {month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}):""}; hover or long-press it to see the product. <span class="edited">•</span> = a price you typed. Tap a price to change it. <button type="button" class="linkbtn" id="resetPrices">Reset my prices</button></p>`;
   h+=`<div class="tablewrap"><table><thead><tr><th>Item</th><th>Buy</th>${idx.map(i=>`<th>${STORES[i].name}</th>`).join("")}</tr></thead><tbody>`;
   for(const n of buyList){const it=ITEMS[n.id],b=cheapest(n.id,idx);
     h+=`<tr><td><b>${it.n}</b><div class="small muted">${it.pkg}</div></td><td class="num">${n.pk}</td>`+idx.map(i=>{const p=price(n.id,i);
@@ -664,7 +673,25 @@ async function runLive(onlyIds){
     liveMsg(stopMsg?stopMsg+" "+summary:sig.aborted?"Stopped. "+summary:"Done. "+summary+" Your list now uses the lowest prices.",stopMsg||sig.aborted?done/tasks.length:1);
   }
 }
-(async()=>{const env=await getLiveEnv().catch(()=>null);liveOK=!!env;renderSearch();if(!env){$("#liveGo").disabled=true;$("#liveSub").textContent="Live prices work when Cheaper Cart is open in the Claude desktop app. This copy uses estimates and the prices you type.";}})();
+// The in-page browser run (runLive) stays in the code but is switched off: the Claude app blocks pages from driving its browser
+// without a prompt. Prices now come from Claude, saved into the shared "prices" collection.
+liveOK=false;
+function renderLiveStatus(){
+  const n=Object.values(SHARED_LIVE).reduce((s,cells)=>s+cells.filter(c=>c&&c.raw>0).length,0)+Object.values(S.live||{}).reduce((s,cells)=>s+(cells||[]).filter(c=>c&&c.raw>0).length,0);
+  const at=lastLiveAt();
+  $("#liveStatus").innerHTML=at?`<b>${n} live prices</b> from the store websites, last checked ${esc(new Date(at).toLocaleString([], {weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}))}.`:"No live prices yet. The list uses estimates until Claude checks the stores.";
+}
+(async()=>{
+  try{
+    if(!window.claude||!window.claude.use)return;
+    const db=await window.claude.use("db");if(!db)return;
+    db.collection("prices").onSnapshot(snap=>{
+      for(const d of snap.docs){const v=d.data()||{};if(ITEMS[d.id]&&Array.isArray(v.cells))SHARED_LIVE[d.id]=v.cells;}
+      sharedAt=snap.docs.reduce((m,d)=>Math.max(m,Number((d.data()||{}).at)||0),0);
+      render();
+    },()=>{});
+  }catch(e){}
+})();
 
 // ---- events ----
 document.addEventListener("click",e=>{
