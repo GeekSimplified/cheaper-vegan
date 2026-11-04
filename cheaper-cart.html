@@ -101,6 +101,28 @@ td.p input{width:72px;text-align:right;font-family:var(--mono);padding:3px 4px;b
 .edited{color:var(--accent);font-weight:700}
 .note{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13px;margin-top:14px}
 .note ul{margin:6px 0 0;padding-left:18px}
+/* Search */
+.search{margin-top:18px;display:grid;gap:6px}
+.searchbar{display:flex;gap:8px}
+.searchbar input{flex:1;min-width:0;font-size:16px;padding:10px 14px;border:2px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)}
+.searchbar input:focus{border-color:var(--accent);outline:none}
+.sres{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;margin-top:6px}
+@media (max-width:400px){.sres{grid-template-columns:minmax(0,1fr)}}
+.scard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:10px;min-width:0}
+.shead{display:flex;justify-content:space-between;gap:10px;align-items:start;flex-wrap:wrap}
+.sadd{display:flex;align-items:center;gap:8px}
+.sprices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.sp{background:var(--sunk);border-radius:8px;padding:6px;text-align:center;min-width:0}
+.sp.off{opacity:.45}
+.sp .sn{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.sp .p button{background:none;border:1px dashed transparent;border-radius:4px;padding:2px 4px;cursor:pointer;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:14px;color:var(--fg)}
+.sp .p.low button{background:var(--tag);color:var(--tag-fg);font-weight:700}
+.sp .p.na button{font-size:11px;color:var(--muted)}
+.sp .u{display:block;font-size:10px;color:var(--muted);font-family:var(--mono)}
+.sp input{width:100%;text-align:center;font-family:var(--mono);padding:3px;border:1px solid var(--accent);border-radius:4px;background:var(--surface)}
+.sverdict{margin:0}
+.sempty{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:6px}
+.slinks{margin:8px 0 0}
 .theme{position:relative}
 .theme summary{list-style:none;cursor:pointer;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:700;font-size:13px;color:var(--fg);display:flex;align-items:center;gap:8px}
 .theme summary::-webkit-details-marker{display:none}
@@ -144,6 +166,15 @@ textarea.copyfallback{width:100%;min-height:160px;margin-top:10px;font-family:va
       <span class="n" id="pplN">1</span>
       <button type="button" id="pplPlus" aria-label="More people">+</button>
     </div>
+  </div>
+
+  <div class="search">
+    <label class="lbl" for="q">Search an ingredient</label>
+    <div class="searchbar">
+      <input type="search" id="q" placeholder="Try: beans, rice, frozen peas, tofu" autocomplete="off" enterkeyhint="search">
+      <button type="button" class="btn ghost" id="qClear" hidden>Clear</button>
+    </div>
+    <div id="searchResults" aria-live="polite"></div>
   </div>
 
   <nav class="tabs" role="tablist">
@@ -195,7 +226,49 @@ const ITEMS={
  chili:{n:"Chili powder",pkg:"2.5 oz jar (~30 tsp)",size:30,u:"tsp",cat:"Canned & pantry",p:[0.95,1.24,1.49,1.99]},
  cumin:{n:"Ground cumin",pkg:"1.5 oz jar (~20 tsp)",size:20,u:"tsp",cat:"Canned & pantry",p:[1.29,1.98,2.29,2.99]}
 };
-const CATS=["Produce","Beans & protein","Grains","Frozen","Canned & pantry"];
+// Extra groceries you can search and add to your list (not used by the meal recipes). k = extra search words.
+const EXTRA={
+ chickpeas:{n:"Dry chickpeas (garbanzo beans)",pkg:"1 lb bag",size:16,u:"oz",cat:"Beans & protein",p:[null,1.58,1.79,2.29],k:"garbanzo"},
+ cchick:{n:"Canned chickpeas",pkg:"15.5 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.79,0.84,0.99,1.29],k:"garbanzo beans"},
+ cblack:{n:"Canned black beans",pkg:"15 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.79,0.78,0.89,1.19]},
+ cpinto:{n:"Canned pinto beans",pkg:"15 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.79,0.78,0.89,1.19]},
+ ckidney:{n:"Canned kidney beans",pkg:"15 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.79,0.84,0.89,1.19]},
+ refried:{n:"Refried beans (vegetarian)",pkg:"16 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.99,1.12,1.19,1.79]},
+ whiterice:{n:"Long grain white rice",pkg:"5 lb bag",size:80,u:"oz",cat:"Grains",p:[3.89,3.97,4.39,4.99]},
+ spaghetti:{n:"Spaghetti (regular)",pkg:"16 oz box",size:16,u:"oz",cat:"Grains",p:[0.95,1.00,1.09,1.49],k:"pasta noodles"},
+ macaroni:{n:"Elbow macaroni",pkg:"16 oz box",size:16,u:"oz",cat:"Grains",p:[0.95,1.00,1.09,1.49],k:"pasta noodles"},
+ flour:{n:"All-purpose flour",pkg:"5 lb bag",size:80,u:"oz",cat:"Grains",p:[2.29,2.38,2.69,3.29],k:"baking"},
+ ftort:{n:"Flour tortillas",pkg:"10 count",size:10,u:"tortilla",cat:"Grains",p:[1.49,1.58,1.79,2.29],k:"wraps"},
+ ctort:{n:"Corn tortillas",pkg:"30 count",size:30,u:"tortilla",cat:"Grains",p:[1.79,1.84,2.19,2.49],k:"taco"},
+ popcorn:{n:"Popcorn kernels",pkg:"30 oz jar",size:30,u:"oz",cat:"Grains",p:[1.99,2.28,2.49,2.99],k:"snack"},
+ soymilk:{n:"Soy milk, fortified",pkg:"half gallon",size:64,u:"fl oz",cat:"Dairy aisle",p:[2.69,2.62,2.99,3.49],k:"milk plant dairy free"},
+ oatmilk:{n:"Oat milk",pkg:"half gallon",size:64,u:"fl oz",cat:"Dairy aisle",p:[2.99,2.98,3.39,3.99],k:"milk plant dairy free"},
+ tofu:{n:"Firm tofu",pkg:"14 oz block",size:14,u:"oz",cat:"Beans & protein",p:[1.79,1.92,1.99,2.49],k:"soy protein"},
+ flax:{n:"Ground flaxseed",pkg:"16 oz bag",size:16,u:"oz",cat:"Beans & protein",p:[3.49,3.48,3.99,4.99],k:"seeds omega"},
+ spinach:{n:"Frozen chopped spinach",pkg:"12 oz bag",size:12,u:"oz",cat:"Frozen",p:[1.15,1.24,1.39,1.79],k:"greens"},
+ broccoli:{n:"Frozen broccoli",pkg:"12 oz bag",size:12,u:"oz",cat:"Frozen",p:[1.29,1.24,1.49,1.99]},
+ peas:{n:"Frozen peas",pkg:"12 oz bag",size:12,u:"oz",cat:"Frozen",p:[1.15,1.12,1.29,1.79]},
+ corn:{n:"Frozen corn",pkg:"12 oz bag",size:12,u:"oz",cat:"Frozen",p:[1.15,1.12,1.29,1.79]},
+ ccorn:{n:"Canned corn",pkg:"15 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.69,0.72,0.79,1.09]},
+ cgreen:{n:"Canned green beans",pkg:"14.5 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.69,0.72,0.79,1.09]},
+ tsauce:{n:"Tomato sauce",pkg:"15 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.59,0.64,0.79,1.09]},
+ tpaste:{n:"Tomato paste",pkg:"6 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.49,0.56,0.69,0.99]},
+ psauce:{n:"Pasta sauce (marinara)",pkg:"24 oz jar",size:24,u:"oz",cat:"Canned & pantry",p:[1.49,1.42,1.69,2.49],k:"spaghetti sauce"},
+ broth:{n:"Vegetable broth",pkg:"32 oz carton",size:32,u:"fl oz",cat:"Canned & pantry",p:[1.29,1.32,1.49,2.19],k:"stock soup"},
+ soysauce:{n:"Soy sauce",pkg:"15 fl oz bottle",size:15,u:"fl oz",cat:"Canned & pantry",p:[1.39,1.48,1.79,2.29]},
+ salt:{n:"Salt",pkg:"26 oz canister",size:26,u:"oz",cat:"Canned & pantry",p:[0.65,0.68,0.79,1.29]},
+ sugar:{n:"Granulated sugar",pkg:"4 lb bag",size:64,u:"oz",cat:"Canned & pantry",p:[2.99,3.12,3.49,3.99],k:"baking"},
+ raisins:{n:"Raisins",pkg:"20 oz canister",size:20,u:"oz",cat:"Canned & pantry",p:[2.49,2.64,2.99,3.49],k:"dried fruit snack"},
+ sweetpot:{n:"Sweet potatoes",pkg:"3 lb bag",size:48,u:"oz",cat:"Produce",p:[2.99,3.12,3.49,3.99],k:"yams"},
+ apples:{n:"Apples",pkg:"3 lb bag",size:48,u:"oz",cat:"Produce",p:[3.49,3.97,4.29,4.49],k:"fruit"},
+ oranges:{n:"Oranges",pkg:"4 lb bag",size:64,u:"oz",cat:"Produce",p:[4.49,4.97,5.29,5.99],k:"fruit citrus"},
+ celery:{n:"Celery",pkg:"1 bunch",size:1,u:"bunch",cat:"Produce",p:[1.49,1.68,1.99,2.29]},
+ peppers:{n:"Green bell pepper",pkg:"1 each",size:1,u:"each",cat:"Produce",p:[0.79,0.88,0.99,1.29]}
+};
+for(const v of Object.values(EXTRA))v.x=true;
+Object.assign(ITEMS,EXTRA);
+const ALIAS={banana:"fruit",apples:"fruit",lentils:"legumes",pinto:"legumes",black:"legumes",splitpea:"legumes peas",pb:"peanuts nut butter",oil:"cooking canola",pasta:"noodles",oats:"oatmeal cereal",tomatoes:"canned"};
+const CATS=["Produce","Beans & protein","Grains","Dairy aisle","Frozen","Canned & pantry"];
 // per-serving amounts in each item's unit; nutrition per serving (kcal, protein g, fiber g)
 // Built on ~20 of the cheapest foods per calorie and per gram of protein, shared across meals so nothing goes to waste.
 const RECIPES=[
@@ -251,10 +324,10 @@ const RECIPES=[
 const DEFAULT_PLAN={ptoast:7,oats:7,mujadara:4,pbs:5,pinto:6,splitpea:3,friedrice:2,baked:2,lentil:0,skillet:0,pasta:0,chili:2};
 
 const PV=2; // bump when the recipe set changes so old saved plans don't point at removed meals
-let S={pv:PV,plan:{...DEFAULT_PLAN},people:1,stores:{aldi:true,walmart:true,target:true,cub:true},have:{},got:{},prices:{},route:"mix",tab:"plan",theme:{bg:"black",accent:"green"}};
+let S={pv:PV,plan:{...DEFAULT_PLAN},people:1,stores:{aldi:true,walmart:true,target:true,cub:true},have:{},got:{},prices:{},route:"mix",tab:"plan",theme:{bg:"black",accent:"green"},extra:{}};
 const LS="cheaper-cart-v1";
 try{const raw=localStorage.getItem(LS);if(raw)merge(JSON.parse(raw));}catch(e){}
-function merge(d){if(!d||typeof d!=="object")return;const keys=["people","stores","have","got","prices","route","tab","theme"];if(d.pv===PV)keys.push("plan");else S.got={};for(const k of keys)if(d[k]!==undefined)S[k]=JSON.parse(JSON.stringify(d[k]));S.pv=PV;}
+function merge(d){if(!d||typeof d!=="object")return;const keys=["people","stores","have","got","prices","route","tab","theme","extra"];if(d.pv===PV)keys.push("plan");else S.got={};for(const k of keys)if(d[k]!==undefined)S[k]=JSON.parse(JSON.stringify(d[k]));S.pv=PV;}
 
 // ---- persistence (private per-viewer db doc, falls back to this browser) ----
 let docRef=null,saveTimer=null,saving=Promise.resolve();
@@ -286,6 +359,7 @@ function cheapest(id,idxs){let best=-1,bp=Infinity;for(const i of idxs){const p=
 function needs(){
   const need={};
   for(const r of RECIPES){const sv=(S.plan[r.id]||0)*S.people;if(!sv)continue;for(const [k,a] of Object.entries(r.ing))need[k]=(need[k]||0)+a*sv;}
+  for(const [k,n] of Object.entries(S.extra||{}))if(ITEMS[k]&&n>0)need[k]=(need[k]||0)+n*ITEMS[k].size; // packages added from search
   const out=[];
   for(const [id,amt] of Object.entries(need)){const it=ITEMS[id];out.push({id,amt,pk:Math.ceil(amt/it.size-1e-9),have:!!S.have[id]});}
   out.sort((a,b)=>CATS.indexOf(ITEMS[a.id].cat)-CATS.indexOf(ITEMS[b.id].cat)||ITEMS[a.id].n.localeCompare(ITEMS[b.id].n));
@@ -346,6 +420,7 @@ function render(){
   if(S.tab==="plan")renderPlan();
   if(S.tab==="list")renderList(list);
   if(S.tab==="compare")renderCompare(list);
+  renderSearch();
 }
 function routeLabel(){if(S.route==="mix")return "cheapest mix of "+enabledIdx().map(i=>STORES[i].name).join(", ");return STORES[+S.route].name+" only";}
 
@@ -401,9 +476,42 @@ function renderCompare(list){
 }
 function unitPrice(p,it){const v=p/it.size;return (v<0.1?"$"+v.toFixed(3):"$"+v.toFixed(2))+"/"+it.u.replace("fl oz","fl oz");}
 
+// ---- search ----
+const STORE_SEARCH={aldi:"https://www.aldi.us/store/aldi/s?k=",walmart:"https://www.walmart.com/search?q=",target:"https://www.target.com/s?searchTerm=",cub:"https://www.cub.com/store/cub/s?k="};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const stem=w=>w.length>4&&w.endsWith("es")&&!w.endsWith("ses")?w.slice(0,-2):w.length>3&&w.endsWith("s")?w.slice(0,-1):w;
+function searchItems(q){
+  const toks=q.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).map(stem);if(!toks.length)return [];
+  const out=[];
+  for(const [id,it] of Object.entries(ITEMS)){
+    const name=it.n.toLowerCase(),hay=(name+" "+it.pkg+" "+it.cat+" "+(it.k||"")+" "+(ALIAS[id]||"")).toLowerCase();
+    if(!toks.every(t=>hay.includes(t)))continue;
+    const score=toks.reduce((s,t)=>s+(name.startsWith(t)?3:name.includes(t)?2:0),0);
+    out.push({id,score});
+  }
+  return out.sort((a,b)=>b.score-a.score||ITEMS[a.id].n.localeCompare(ITEMS[b.id].n)).slice(0,12).map(o=>o.id);
+}
+function renderSearch(){
+  const q=$("#q").value.trim(),box=$("#searchResults");$("#qClear").hidden=!q;
+  if(!q){box.innerHTML="";return;}
+  const ids=searchItems(q),idx=enabledIdx(),inPlan=new Set(needs().filter(n=>!S.extra[n.id]||n.amt>S.extra[n.id]*ITEMS[n.id].size).map(n=>n.id));
+  const links=`<p class="small muted slinks">Check today's price for “${esc(q)}” online: ${STORES.map(s=>`<a href="${STORE_SEARCH[s.id]+encodeURIComponent(q)}" target="_blank" rel="noopener">${s.name}</a>`).join(" · ")}</p>`;
+  if(!ids.length){box.innerHTML=`<div class="sempty"><b>“${esc(q)}” isn't in the price list yet.</b> Try a simpler word like “beans” or “rice”.</div>`+links;return;}
+  box.innerHTML=`<div class="sres">`+ids.map(id=>{
+    const it=ITEMS[id],b=cheapest(id,idx),prices=STORES.map((s,i)=>({i,p:price(id,i)})),onPs=prices.filter(x=>x.p!=null&&S.stores[STORES[x.i].id]);
+    const hi=onPs.length?Math.max(...onPs.map(x=>x.p)):0,n=S.extra[id]||0;
+    return `<article class="scard"><div class="shead"><div style="min-width:0"><h3>${it.n}</h3><div class="small muted">${it.pkg} · ${it.cat}${inPlan.has(id)?" · in your meal plan":""}</div></div>
+      <div class="sadd">${n?`<div class="stepper"><button type="button" data-extra="${id}" data-d="-1" aria-label="One fewer ${it.n}">−</button><span class="n">${n}</span><button type="button" data-extra="${id}" data-d="1" aria-label="One more ${it.n}">+</button></div><span class="small muted">on list</span>`:`<button type="button" class="btn" data-extra="${id}" data-d="1">Add to list</button>`}</div></div>
+      <div class="sprices">${prices.map(({i,p})=>{const on=S.stores[STORES[i].id];return `<div class="sp${!on?" off":""}"><span class="sn">${STORES[i].name}</span><div class="p${b&&b.i===i?" low":""}${p==null?" na":""}"><button type="button" data-edit="${id}" data-si="${i}" aria-label="Edit ${it.n} price at ${STORES[i].name}">${p==null?"not carried":money(p)+(isEdited(id,i)?'<span class="edited"> •</span>':"")}</button>${p!=null?`<span class="u">${unitPrice(p,it)}</span>`:""}</div></div>`}).join("")}</div>
+      ${b?`<p class="small sverdict">Cheapest at <b>${STORES[b.i].name}</b>${hi>b.p?`, saving ${money(hi-b.p)} over the priciest of your stores`:""}.</p>`:`<p class="small muted sverdict">Not carried at the stores you have turned on.</p>`}
+    </article>`}).join("")+`</div>`+links;
+}
+
 // ---- events ----
 document.addEventListener("click",e=>{
   const t=e.target.closest("button");if(!t)return;
+  if(t.dataset.extra){const id=t.dataset.extra,n=Math.max(0,Math.min(20,(S.extra[id]||0)+ +t.dataset.d));if(n)S.extra[id]=n;else delete S.extra[id];if(n&&S.have[id])delete S.have[id];save();render();if(+t.dataset.d>0&&n===1)toast("Added to your shopping list");return;}
+  if(t.id==="qClear"){$("#q").value="";renderSearch();$("#q").focus();return;}
   if(t.dataset.bg){S.theme={...S.theme,bg:t.dataset.bg};save();render();return;}
   if(t.dataset.accent){S.theme={...S.theme,accent:t.dataset.accent};save();render();return;}
   if(t.dataset.tab){S.tab=t.dataset.tab;save();render();return;}
@@ -417,6 +525,8 @@ document.addEventListener("click",e=>{
   if(t.id==="clearGot"){S.got={};save();render();return;}
   if(t.id==="copyList"){copyList();return;}
 });
+$("#q").addEventListener("input",renderSearch);
+$("#q").addEventListener("keydown",e=>{if(e.key==="Escape"){e.target.value="";renderSearch();}});
 document.addEventListener("change",e=>{
   const t=e.target;
   if(t.dataset&&t.dataset.got){const id=t.dataset.got;if(t.checked)S.got[id]=true;else delete S.got[id];save();render();}
