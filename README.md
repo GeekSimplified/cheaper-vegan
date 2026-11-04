@@ -25,6 +25,14 @@ Or open `index.html` in any web browser. Nothing to install. Your plan and price
 
 `cheaper-cart.html` is the source. After editing it, run `sh build-pages.sh` to regenerate `index.html` (the GitHub Pages site), then commit both.
 
+## Accessibility checks
+
+Automated checks run axe-core in a real browser (Playwright) against WCAG 2.1 and 2.2 AA. They cover every tab, search results, the theme menu, color contrast in every background theme, and keyboard use of the tabs (arrow keys, Home, End).
+
+One-time setup: `npm install` then `npx playwright install chromium`. After that, run `sh build-pages.sh` and then `npm test`.
+
+Automated checks catch only part of what matters, so check changes with NVDA too.
+
 ## Notes
 
 Nutrition figures are per-serving estimates. A vegan diet needs a vitamin B12 supplement.

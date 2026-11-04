@@ -66,7 +66,7 @@ details ul,details ol{margin:6px 0 0;padding-left:18px;font-size:13px}
 .planfilter{margin-bottom:10px}
 .rc .meal .cui{color:var(--accent)}
 .planfilter .chip .muted{font-weight:500}
-.planfilter .chip[aria-pressed="true"] .muted{color:inherit;opacity:.75}
+.planfilter .chip[aria-pressed="true"] .muted{color:inherit}
 /* List */
 .route{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
 .storegroup{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:14px;overflow:hidden}
@@ -79,6 +79,7 @@ details ul,details ol{margin:6px 0 0;padding-left:18px;font-size:13px}
 .li .pr{text-align:right}
 .flag{display:inline-block;font-size:11px;font-weight:700;color:var(--warn);background:var(--warn-bg);border-radius:4px;padding:1px 6px;margin-left:4px}
 .linkbtn{background:none;border:0;padding:0;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;text-decoration:underline}
+.linkbtn,.li .pr a{display:inline-block;min-height:24px;line-height:24px}
 .haveList{margin-top:8px;font-size:13px}
 .btn{border:1px solid var(--accent);background:var(--accent);color:var(--accent-fg);border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer}
 .btn.ghost{background:var(--surface);color:var(--accent)}
@@ -212,14 +213,14 @@ textarea.copyfallback{width:100%;min-height:160px;margin-top:10px;font-family:va
   </div>
 
   <nav class="tabs" role="tablist">
-    <button role="tab" id="tab-plan" data-tab="plan">1 · Plan meals</button>
-    <button role="tab" id="tab-list" data-tab="list">2 · Shopping list</button>
-    <button role="tab" id="tab-compare" data-tab="compare">3 · Compare prices</button>
+    <button type="button" role="tab" id="tab-plan" data-tab="plan" aria-controls="panel-plan">1 · Plan meals</button>
+    <button type="button" role="tab" id="tab-list" data-tab="list" aria-controls="panel-list">2 · Shopping list</button>
+    <button type="button" role="tab" id="tab-compare" data-tab="compare" aria-controls="panel-compare">3 · Compare prices</button>
   </nav>
 
-  <section class="panel" id="panel-plan"></section>
-  <section class="panel" id="panel-list" hidden></section>
-  <section class="panel" id="panel-compare" hidden></section>
+  <section class="panel" id="panel-plan" role="tabpanel" aria-labelledby="tab-plan"></section>
+  <section class="panel" id="panel-list" role="tabpanel" aria-labelledby="tab-list" hidden></section>
+  <section class="panel" id="panel-compare" role="tabpanel" aria-labelledby="tab-compare" hidden></section>
 
   <div class="note">
     <b>About these prices.</b> Prices marked <span class="livetag">live</span> were read from the store's website by <b>Get live prices</b>. All others are estimates of typical Twin Cities store-brand prices as of November 2026 (Hy-Vee estimates are rougher). Online pickup and delivery prices can differ from shelf prices. Tap any price to type the real one; your prices are saved and used everywhere.
@@ -508,6 +509,8 @@ function liveCell(id,i){
 const lastLiveAt=()=>Math.max(S.liveAt||0,sharedAt);
 function price(id,i){const o=S.prices[id];if(o&&o[i]!=null)return o[i];const L=liveCell(id,i);if(L)return Math.round(L.raw/L.pk*100)/100;const p=ITEMS[id].p[i];return p==null?null:Math.round(p*100)/100;}
 function isEdited(id,i){const o=S.prices[id];return !!(o&&o[i]!=null);}
+// Screen reader name for a price button: starts with the visible text, then says what and where.
+function editLbl(id,i,p){return `${p==null?"not carried":money(p)}${p!=null&&isEdited(id,i)?", your price":""}, ${ITEMS[id].n} at ${STORES[i].name}. Edit price`;}
 function isLive(id,i){return !isEdited(id,i)&&!!liveCell(id,i);}
 // what you'd actually buy at store i: live products are bought whole, in their real size
 function buy(n,i){const p=price(n.id,i);if(p==null)return null;const it=ITEMS[n.id],L=isLive(n.id,i)?liveCell(n.id,i):null;
@@ -577,7 +580,7 @@ function render(){
    `<div><div class="k">Protein / day</div><div class="v">${Math.round(pro/7)} g</div><div class="s">${pro/7<55?"aim for 50–60 g":"per person"}</div></div>`;
   $("#storeChips").innerHTML=STORES.map(s=>`<button type="button" class="chip" data-store="${s.id}" aria-pressed="${!!S.stores[s.id]}">${s.name}</button>`).join("");
   $("#pplN").textContent=S.people;
-  document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===S.tab));
+  document.querySelectorAll("nav.tabs button").forEach(b=>{const on=b.dataset.tab===S.tab;b.setAttribute("aria-selected",on);b.tabIndex=on?0:-1;});
   for(const t of ["plan","list","compare"])$("#panel-"+t).hidden=S.tab!==t;
   if(S.tab==="plan")renderPlan();
   if(S.tab==="list")renderList(list);
@@ -668,8 +671,8 @@ function renderCompare(list){
   h+=`<div class="tablewrap"><table><thead><tr><th>Item</th><th>Buy</th>${idx.map(i=>`<th>${STORES[i].name}</th>`).join("")}</tr></thead><tbody>`;
   for(const n of buyList){const it=ITEMS[n.id],b=cheapest(n.id,idx);
     h+=`<tr><td><b>${it.n}</b><div class="small muted">${it.pkg}</div></td><td class="num">${n.pk}</td>`+idx.map(i=>{const p=price(n.id,i);
-      if(p==null)return `<td class="p na"><button type="button" data-edit="${n.id}" data-si="${i}" style="font-size:12px">not carried</button></td>`;
-      return `<td class="p${b&&b.i===i?" low":""}"><button type="button" data-edit="${n.id}" data-si="${i}" aria-label="Edit ${it.n} price at ${STORES[i].name}">${money(p)}${isEdited(n.id,i)?'<span class="edited"> •</span>':""}</button><span class="u">${unitPrice(p,it)}</span>${liveMark(n.id,i)}</td>`}).join("")+`</tr>`;}
+      if(p==null)return `<td class="p na"><button type="button" data-edit="${n.id}" data-si="${i}" aria-label="${editLbl(n.id,i,p)}" style="font-size:12px">not carried</button></td>`;
+      return `<td class="p${b&&b.i===i?" low":""}"><button type="button" data-edit="${n.id}" data-si="${i}" aria-label="${editLbl(n.id,i,p)}">${money(p)}${isEdited(n.id,i)?'<span class="edited" aria-hidden="true"> •</span>':""}</button><span class="u">${unitPrice(p,it)}</span>${liveMark(n.id,i)}</td>`}).join("")+`</tr>`;}
   h+=`</tbody><tfoot><tr><td>Total for this list</td><td></td>${singles.map(s=>`<td class="num">${money(s.t)}${s.miss?`<div class="small muted">+${s.miss} missing</div>`:""}</td>`).join("")}</tr></tfoot></table></div>`;
   $("#panel-compare").innerHTML=h;
 }
@@ -702,7 +705,7 @@ function renderSearch(){
     const hi=onPs.length?Math.max(...onPs.map(x=>x.p)):0,n=S.extra[id]||0;
     return `<article class="scard"><div class="shead"><div style="min-width:0"><h3>${it.n}</h3><div class="small muted">${it.pkg} · ${it.cat}${inPlan.has(id)?" · in your meal plan":""}</div></div>
       <div class="sadd">${n?`<div class="stepper"><button type="button" data-extra="${id}" data-d="-1" aria-label="One fewer ${it.n}">−</button><span class="n">${n}</span><button type="button" data-extra="${id}" data-d="1" aria-label="One more ${it.n}">+</button></div><span class="small muted">on list</span>`:`<button type="button" class="btn" data-extra="${id}" data-d="1">Add to list</button>`}</div></div>
-      <div class="sprices">${prices.map(({i,p})=>{const on=S.stores[STORES[i].id];return `<div class="sp${!on?" off":""}"><span class="sn">${STORES[i].name}</span><div class="p${b&&b.i===i?" low":""}${p==null?" na":""}"><button type="button" data-edit="${id}" data-si="${i}" aria-label="Edit ${it.n} price at ${STORES[i].name}">${p==null?"not carried":money(p)+(isEdited(id,i)?'<span class="edited"> •</span>':"")}</button>${p!=null?`<span class="u">${unitPrice(p,it)}</span>`:""}${liveMark(id,i)}</div></div>`}).join("")}</div>
+      <div class="sprices">${prices.map(({i,p})=>{const on=S.stores[STORES[i].id];return `<div class="sp${!on?" off":""}"><span class="sn">${STORES[i].name}</span><div class="p${b&&b.i===i?" low":""}${p==null?" na":""}"><button type="button" data-edit="${id}" data-si="${i}" aria-label="${editLbl(id,i,p)}">${p==null?"not carried":money(p)+(isEdited(id,i)?'<span class="edited" aria-hidden="true"> •</span>':"")}</button>${p!=null?`<span class="u">${unitPrice(p,it)}</span>`:""}${liveMark(id,i)}</div></div>`}).join("")}</div>
       ${b?`<p class="small sverdict">Cheapest at <b>${STORES[b.i].name}</b>${hi>b.p?`, saving ${money(hi-b.p)} over the priciest of your stores`:""}.${isLive(id,b.i)?` Buy: ${esc(liveCell(id,b.i).prod)}.`:""}</p>`:`<p class="small muted sverdict">Not carried at the stores you have turned on.</p>`}
       ${liveOK?`<div class="slive">${liveFor===id?`<span class="small">Checking ${idx.length} store websites…</span>`:`<button type="button" class="btn ghost" data-livecheck="${id}"${liveCtl?" disabled":""}>Check live prices</button><span class="small muted">${idx.length} stores, about ${Math.max(1,Math.round(idx.length*7/60*2)/2)} min</span>`}</div>`:""}
     </article>`}).join("")+`</div>`+links;
@@ -870,6 +873,11 @@ document.addEventListener("click",e=>{
   if(t.id==="copyList"){copyList();return;}
 });
 $("#q").addEventListener("input",renderSearch);
+$("nav.tabs").addEventListener("keydown",e=>{
+  const tabs=[...document.querySelectorAll("nav.tabs [role=tab]")],cur=tabs.indexOf(document.activeElement);if(cur<0)return;
+  const to={ArrowRight:(cur+1)%tabs.length,ArrowLeft:(cur-1+tabs.length)%tabs.length,Home:0,End:tabs.length-1}[e.key];if(to===undefined)return;
+  e.preventDefault();S.tab=tabs[to].dataset.tab;save();render();tabs[to].focus();
+});
 $("#q").addEventListener("keydown",e=>{if(e.key==="Escape"){e.target.value="";renderSearch();}if(e.key==="Enter"){e.preventDefault();renderSearch();}});
 document.addEventListener("change",e=>{
   const t=e.target;
