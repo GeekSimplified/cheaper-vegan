@@ -1,4 +1,4 @@
-<title>Cheaper Cart</title>
+<title>Cheaper Vegan</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..900&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
@@ -157,7 +157,7 @@ textarea.copyfallback{width:100%;min-height:160px;margin-top:10px;font-family:va
 <div class="wrap">
   <header class="top">
     <div>
-      <h1>Cheaper Cart</h1>
+      <h1>Cheaper Vegan</h1>
       <p class="lede">Pick rock-bottom-cost, high-nutrition vegan meals for the week, most under 50¢ a serving. The app builds your shopping list and finds the cheapest store for each item across Aldi, Walmart, Target, Cub Foods and Hy-Vee.</p>
     </div>
     <details class="theme" id="themeMenu">
@@ -189,7 +189,7 @@ textarea.copyfallback{width:100%;min-height:160px;margin-top:10px;font-family:va
       <div style="min-width:0">
         <h2>Live prices</h2>
         <p class="small" id="liveStatus">No live prices yet.</p>
-        <p class="small muted">To refresh, ask Claude in the Claude desktop app chat: <b>“Refresh Cheaper Cart prices.”</b> Claude checks each store's website for your 55372-area stores and the new prices appear here automatically.</p>
+        <p class="small muted">To refresh, ask Claude in the Claude desktop app chat: <b>“Refresh Cheaper Vegan prices.”</b> Claude checks each store's website for your 55372-area stores and the new prices appear here automatically.</p>
         <p class="small muted" id="liveSub" hidden></p>
       </div>
       <div class="btns">
@@ -730,9 +730,9 @@ function liveSubText(){
 }
 function browserStop(e){
   const c=e&&e.code;
-  if(c==="server_not_connected"||c==="not_granted"||c==="capability_disabled"||c==="capability_removed")return "Live prices only work when Cheaper Cart is open in the Claude desktop app.";
+  if(c==="server_not_connected"||c==="not_granted"||c==="capability_disabled"||c==="capability_removed")return "Live prices only work when Cheaper Vegan is open in the Claude desktop app.";
   if(c==="not_in_manifest"||c==="approval_required"||c==="consent_required")return "Browser access wasn't allowed. Click Get live prices again and choose Allow.";
-  if(c==="cancelled")return "The Claude app asked to let Cheaper Cart open store pages in its browser, and that request was declined or closed. Click the button again and choose Allow when the app asks (pick an “always allow” option if one is offered).";
+  if(c==="cancelled")return "The Claude app asked to let Cheaper Vegan open store pages in its browser, and that request was declined or closed. Click the button again and choose Allow when the app asks (pick an “always allow” option if one is offered).";
   if(c==="blocked_by_policy")return "Your organization doesn't allow this page to use the browser.";
   return null; // tool_error, upstream_error, server_unavailable: skip this one lookup
 }
@@ -778,7 +778,7 @@ async function runLive(onlyIds){
   if(!items.length||!stores.length){liveMsg("Add meals or items to your shopping list first.",0);return;}
   liveMsg("Connecting to the Claude desktop app's browser…",0);
   const env=await getLiveEnv();
-  if(!env){liveMsg("Live prices only work when Cheaper Cart is open in the Claude desktop app.",0);return;}
+  if(!env){liveMsg("Live prices only work when Cheaper Vegan is open in the Claude desktop app.",0);return;}
   const ctl=liveCtl=new AbortController(),sig=ctl.signal;
   $("#liveGo").disabled=true;$("#liveStop").hidden=false;
   const tasks=[];for(const i of stores)for(const id of items)tasks.push({id,i});
@@ -892,7 +892,7 @@ function startEdit(btn){
 function listText(){
   const rows=assign(S.route,needs()),groups={};
   for(const r of rows){const k=r.st?STORES[r.st.i].name:"Other";(groups[k]=groups[k]||[]).push(r);}
-  let s="Cheaper Cart list — "+money(total(rows))+"\n";
+  let s="Cheaper Vegan list — "+money(total(rows))+"\n";
   for(const [k,g] of Object.entries(groups)){s+="\n"+k.toUpperCase()+" ("+money(total(g))+")\n";for(const r of g)s+="[ ] "+ITEMS[r.id].n+": "+r.label+" "+money(r.cost)+"\n";}
   return s;
 }
