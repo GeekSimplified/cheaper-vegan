@@ -15,7 +15,13 @@ The built-in prices are estimates of typical Twin Cities store-brand prices as o
 
 ## Running it
 
-Open `cheaper-cart.html` in any web browser. There's no build step and nothing to install. Your plan and prices are saved in your browser's local storage.
+**Live site:** https://geeksimplified.github.io/cheaper-cart/
+
+Or open `index.html` in any web browser. Nothing to install. Your plan and prices are saved in your browser's local storage.
+
+## Editing
+
+`cheaper-cart.html` is the source. After editing it, run `sh build-pages.sh` to regenerate `index.html` (the GitHub Pages site), then commit both.
 
 ## Notes
 

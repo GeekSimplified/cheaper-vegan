@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Cheaper Cart</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..900&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: a summary "receipt strip" up top, then three working tabs (plan → list → compare). Shelf-tag yellow marks the cheapest price. */
+:root{
+  --bg:#f3f6f1; --surface:#ffffff; --sunk:#e8eee5; --fg:#1b2a1f; --muted:#5b6b5f; --line:#d3ddd0;
+  --accent:#1f6b3a; --accent-fg:#ffffff; --tag:#ffd84a; --tag-fg:#2a2300; --warn:#a24a14; --warn-bg:#fbe9dc;
+  --display:"Archivo","Arial Narrow",Arial,sans-serif; --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111813; --surface:#18221b; --sunk:#0d130f; --fg:#e4ede5; --muted:#9db0a1; --line:#2b3a2f;
+  --accent:#5fcf86; --accent-fg:#08210f; --tag:#ffd84a; --tag-fg:#2a2300; --warn:#f0a070; --warn-bg:#3a2316; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111813; --surface:#18221b; --sunk:#0d130f; --fg:#e4ede5; --muted:#9db0a1; --line:#2b3a2f;
+  --accent:#5fcf86; --accent-fg:#08210f; --tag:#ffd84a; --tag-fg:#2a2300; --warn:#f0a070; --warn-bg:#3a2316; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+h1,h2,h3{font-family:var(--display);font-stretch:80%;text-wrap:balance;margin:0;line-height:1.1}
+h1{font-size:clamp(30px,6vw,44px);font-weight:900;letter-spacing:-.01em}
+h2{font-size:22px;font-weight:800}
+h3{font-size:18px;font-weight:800}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+a{color:var(--accent)}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:end;justify-content:space-between}
+.lede{margin:6px 0 0;max-width:60ch;color:var(--muted)}
+
+.strip{margin-top:18px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.strip>div{padding:12px 16px;border-right:1px dashed var(--line);min-width:0}
+.strip>div:last-child{border-right:0}
+.strip .k{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.strip .v{font-family:var(--mono);font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.strip .s{font-size:12px;color:var(--muted)}
+@media (max-width:640px){.strip{grid-template-columns:repeat(2,minmax(0,1fr))}.strip>div:nth-child(2){border-right:0}.strip>div:nth-child(-n+2){border-bottom:1px dashed var(--line)}}
+
+.controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-top:14px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 12px;cursor:pointer;font-size:13px;font-weight:600}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.lbl{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+
+nav.tabs{display:flex;gap:4px;margin-top:22px;border-bottom:2px solid var(--line);overflow-x:auto}
+nav.tabs button{background:none;border:0;padding:10px 14px;font-family:var(--display);font-stretch:85%;font-weight:800;font-size:17px;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+section.panel{padding-top:18px}
+
+/* Plan */
+.recipes{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.rc{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.rc.on{border-color:var(--accent)}
+.rc .meal{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--sunk);border-radius:6px;padding:8px}
+.facts div{min-width:0}
+.facts b{display:block;font-family:var(--mono);font-size:15px}
+.facts span{font-size:11px;color:var(--muted)}
+.why{font-size:13px;color:var(--muted);margin:0}
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper button{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:18px;font-weight:700;cursor:pointer}
+.stepper .n{min-width:2ch;text-align:center;font-family:var(--mono);font-weight:700;font-size:17px}
+details summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--accent)}
+details ul,details ol{margin:6px 0 0;padding-left:18px;font-size:13px}
+
+/* List */
+.route{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.storegroup{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:14px;overflow:hidden}
+.storegroup>header{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:12px 14px;background:var(--sunk);flex-wrap:wrap}
+.li{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 14px;border-top:1px solid var(--line)}
+.li input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
+.li.got .nm{text-decoration:line-through;color:var(--muted)}
+.li .nm{font-weight:600}
+.li .q{font-size:13px;color:var(--muted)}
+.li .pr{text-align:right}
+.flag{display:inline-block;font-size:11px;font-weight:700;color:var(--warn);background:var(--warn-bg);border-radius:4px;padding:1px 6px;margin-left:4px}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;text-decoration:underline}
+.haveList{margin-top:8px;font-size:13px}
+.btn{border:1px solid var(--accent);background:var(--accent);color:var(--accent-fg);border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer}
+.btn.ghost{background:var(--surface);color:var(--accent)}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Compare */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.card.best{border:2px solid var(--accent)}
+.card .t{font-family:var(--display);font-stretch:85%;font-weight:800;font-size:16px}
+.card .v{font-family:var(--mono);font-size:22px;font-weight:700}
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;vertical-align:middle}
+th:first-child,td:first-child{text-align:left}
+thead th{font-family:var(--display);font-stretch:85%;font-weight:800;font-size:15px;background:var(--sunk);position:sticky;top:0}
+tfoot td{font-weight:700;background:var(--sunk)}
+td.p button{background:none;border:1px dashed transparent;border-radius:4px;padding:2px 6px;cursor:pointer;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:14px}
+td.p button:hover{border-color:var(--line)}
+td.p.low button{background:var(--tag);color:var(--tag-fg);font-weight:700}
+td.p .u{display:block;font-size:11px;color:var(--muted);font-family:var(--mono)}
+td.p.na{color:var(--muted);font-size:12px}
+td.p input{width:72px;text-align:right;font-family:var(--mono);padding:3px 4px;border:1px solid var(--accent);border-radius:4px;background:var(--surface)}
+.edited{color:var(--accent);font-weight:700}
+.note{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13px;margin-top:14px}
+.note ul{margin:6px 0 0;padding-left:18px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:8px;font-weight:600;font-size:14px}
+textarea.copyfallback{width:100%;min-height:160px;margin-top:10px;font-family:var(--mono);font-size:12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px}
+@media (prefers-reduced-motion:no-preference){.rc,.chip,.btn{transition:border-color .15s,background .15s}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Cheaper Cart</h1>
+      <p class="lede">Pick rock-bottom-cost, high-nutrition vegan meals for the week, most under 50¢ a serving. The app builds your shopping list and finds the cheapest store for each item across Aldi, Walmart, Target and Cub Foods.</p>
+    </div>
+  </header>
+
+  <div class="strip" id="strip"></div>
+
+  <div class="controls">
+    <span class="lbl">Stores I shop</span>
+    <div class="chips" id="storeChips"></div>
+    <span class="lbl">People</span>
+    <div class="stepper">
+      <button type="button" id="pplMinus" aria-label="Fewer people">−</button>
+      <span class="n" id="pplN">1</span>
+      <button type="button" id="pplPlus" aria-label="More people">+</button>
+    </div>
+  </div>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="tab-plan" data-tab="plan">1 · Plan meals</button>
+    <button role="tab" id="tab-list" data-tab="list">2 · Shopping list</button>
+    <button role="tab" id="tab-compare" data-tab="compare">3 · Compare prices</button>
+  </nav>
+
+  <section class="panel" id="panel-plan"></section>
+  <section class="panel" id="panel-list" hidden></section>
+  <section class="panel" id="panel-compare" hidden></section>
+
+  <div class="note">
+    <b>About these prices.</b> They are typical shelf prices for store brands in the Twin Cities area as of November 2026, not live quotes. Stores change prices weekly and by location. In <b>Compare prices</b>, tap any price to replace it with what you see in the store or its app; your prices are saved and used everywhere.
+    <ul>
+      <li>All four stores accept SNAP/EBT.</li>
+      <li>Check prices: <a href="https://www.aldi.us" target="_blank" rel="noopener">aldi.us</a> · <a href="https://www.walmart.com" target="_blank" rel="noopener">walmart.com</a> · <a href="https://www.target.com" target="_blank" rel="noopener">target.com</a> · <a href="https://www.cub.com" target="_blank" rel="noopener">cub.com</a></li>
+      <li>Nutrition numbers are estimates per serving. A vegan diet needs a vitamin B12 supplement; a cheap store-brand bottle lasts months.</li>
+      <li>Every meal shares the same ~20 staples, so the bags and jars you buy get used up across the week instead of going to waste.</li>
+    </ul>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+const STORES=[
+  {id:"aldi",name:"Aldi"},{id:"walmart",name:"Walmart"},{id:"target",name:"Target"},{id:"cub",name:"Cub Foods"}];
+// prices: [Aldi, Walmart, Target, Cub]; null = not usually carried
+const ITEMS={
+ oats:{n:"Old-fashioned oats",pkg:"42 oz canister",size:42,u:"oz",cat:"Grains",p:[3.29,3.42,3.79,4.49]},
+ rice:{n:"Brown rice",pkg:"2 lb bag",size:32,u:"oz",cat:"Grains",p:[1.89,1.78,2.19,2.49]},
+ pasta:{n:"Whole wheat spaghetti",pkg:"16 oz box",size:16,u:"oz",cat:"Grains",p:[1.09,1.18,1.29,1.69]},
+ bread:{n:"Whole wheat bread",pkg:"20 oz loaf (~20 slices)",size:20,u:"slice",cat:"Grains",p:[1.65,1.48,1.99,2.49]},
+ lentils:{n:"Dry lentils",pkg:"1 lb bag",size:16,u:"oz",cat:"Beans & protein",p:[1.45,1.38,1.69,1.99]},
+ pinto:{n:"Dry pinto beans",pkg:"2 lb bag",size:32,u:"oz",cat:"Beans & protein",p:[1.99,1.98,2.29,2.49]},
+ black:{n:"Dry black beans",pkg:"2 lb bag",size:32,u:"oz",cat:"Beans & protein",p:[2.19,2.14,2.49,2.79]},
+ splitpea:{n:"Dry split peas",pkg:"1 lb bag",size:16,u:"oz",cat:"Beans & protein",p:[null,1.24,1.49,1.79]},
+ pb:{n:"Peanut butter",pkg:"40 oz jar",size:40,u:"oz",cat:"Beans & protein",p:[3.89,3.72,4.29,4.99]},
+ banana:{n:"Bananas",pkg:"1 lb (~3 bananas)",size:16,u:"oz",cat:"Produce",p:[0.49,0.54,0.59,0.69]},
+ carrots:{n:"Carrots",pkg:"2 lb bag",size:32,u:"oz",cat:"Produce",p:[1.49,1.58,1.79,1.99]},
+ onions:{n:"Yellow onions",pkg:"3 lb bag",size:48,u:"oz",cat:"Produce",p:[2.49,2.78,2.99,3.49]},
+ garlic:{n:"Garlic",pkg:"3 bulbs (~30 cloves)",size:30,u:"clove",cat:"Produce",p:[1.49,1.58,1.79,1.99]},
+ potatoes:{n:"Russet potatoes",pkg:"5 lb bag",size:80,u:"oz",cat:"Produce",p:[2.99,3.24,3.49,3.99]},
+ cabbage:{n:"Green cabbage",pkg:"1 head (~3 lb)",size:48,u:"oz",cat:"Produce",p:[1.89,1.98,2.39,2.49]},
+ mixveg:{n:"Frozen mixed vegetables",pkg:"12 oz bag",size:12,u:"oz",cat:"Frozen",p:[1.15,1.12,1.29,1.79]},
+ tomatoes:{n:"Canned diced tomatoes",pkg:"14.5 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.75,0.82,0.89,1.19]},
+ oil:{n:"Vegetable oil",pkg:"48 fl oz bottle",size:48,u:"fl oz",cat:"Canned & pantry",p:[3.49,3.84,3.99,4.99]},
+ chili:{n:"Chili powder",pkg:"2.5 oz jar (~30 tsp)",size:30,u:"tsp",cat:"Canned & pantry",p:[0.95,1.24,1.49,1.99]},
+ cumin:{n:"Ground cumin",pkg:"1.5 oz jar (~20 tsp)",size:20,u:"tsp",cat:"Canned & pantry",p:[1.29,1.98,2.29,2.99]}
+};
+const CATS=["Produce","Beans & protein","Grains","Frozen","Canned & pantry"];
+// per-serving amounts in each item's unit; nutrition per serving (kcal, protein g, fiber g)
+// Built on ~20 of the cheapest foods per calorie and per gram of protein, shared across meals so nothing goes to waste.
+const RECIPES=[
+ {id:"ptoast",n:"Peanut butter toast",meal:"Snack",cal:175,pro:7,fib:3,
+  why:"About a dime. The cheapest way to add calories and protein to any day.",
+  ing:{bread:1,pb:0.56},
+  steps:["Toast 1 slice of bread and spread with 1 tbsp peanut butter."]},
+ {id:"oats",n:"Banana peanut butter oatmeal",meal:"Breakfast",cal:350,pro:10,fib:8,
+  why:"Oats cooked in water. Peanut butter and banana make it filling for hours.",
+  ing:{oats:1.4,pb:0.56,banana:4.5},
+  steps:["Simmer ½ cup oats in 1 cup water for 5 minutes (or microwave 2 minutes).","Stir in 1 tbsp peanut butter and top with a sliced banana."]},
+ {id:"mujadara",n:"Lentils & rice with fried onions",meal:"Lunch or dinner",cal:365,pro:14,fib:7,
+  why:"A Middle Eastern staple called mujadara. Lentils plus rice make a complete protein.",
+  ing:{lentils:1.5,rice:1.5,onions:2,oil:0.15,cumin:0.25},
+  steps:["Slice onions thin and fry slowly in oil until deep brown, about 20 minutes.","Simmer lentils and rice together in 3 parts water with cumin and salt, 35–40 minutes.","Top with the fried onions."]},
+ {id:"pbs",n:"PB sandwich with carrot sticks",meal:"Lunch",cal:373,pro:15,fib:7,
+  why:"No cooking. Whole wheat bread plus peanut butter gives complete protein.",
+  ing:{bread:2,pb:1.1,carrots:2},
+  steps:["Spread 2 tbsp peanut butter on 2 slices of bread.","Cut a carrot into sticks."]},
+ {id:"pinto",n:"Cumin pinto beans & brown rice",meal:"Dinner",cal:445,pro:17,fib:11,
+  why:"The classic budget staple. Cook a full bag of beans at once and freeze portions.",
+  ing:{pinto:2,rice:2,onions:1,garlic:1,chili:0.5,cumin:0.5,oil:0.1},
+  steps:["Soak beans overnight, then simmer 1–1½ hours until soft (or pressure cook 30 min).","Cook rice: 1 part rice to 2 parts water, 40 minutes.","Sauté onion and garlic, add spices and beans with a little bean water; simmer 10 minutes."]},
+ {id:"splitpea",n:"Split pea & potato soup",meal:"Lunch or dinner",cal:290,pro:16,fib:17,
+  why:"Split peas are among the cheapest protein per gram. No broth needed.",
+  ing:{splitpea:2,potatoes:3,carrots:1.5,onions:1,garlic:1},
+  steps:["Add rinsed split peas, diced potato, carrot, onion and garlic to a pot.","Cover with 2 cups water per serving and a good pinch of salt.","Simmer 45–60 minutes until thick."]},
+ {id:"friedrice",n:"Bean & veggie fried rice",meal:"Dinner",cal:390,pro:12,fib:8,
+  why:"Uses up leftover rice and beans. Frozen veg is as nutritious as fresh.",
+  ing:{rice:2,mixveg:2,pinto:1,garlic:1,oil:0.15},
+  steps:["Fry garlic in oil, add frozen mixed vegetables and cook 4 minutes.","Add cold cooked rice and beans; fry until hot and a little crispy. Salt to taste."]},
+ {id:"baked",n:"Baked potato with chili black beans",meal:"Dinner",cal:340,pro:13,fib:10,
+  why:"Potatoes are the cheapest filling vegetable, with vitamin C and potassium.",
+  ing:{potatoes:8,black:1.5,onions:0.5,chili:0.5,oil:0.05},
+  steps:["Microwave a potato 8–10 minutes (or bake at 400°F for 1 hour).","Warm cooked black beans with diced onion and chili powder.","Split the potato and spoon beans on top."]},
+ {id:"lentil",n:"Lentil & cabbage soup",meal:"Lunch or dinner",cal:270,pro:15,fib:10,
+  why:"Iron, folate and vitamin C. Cabbage is one of the cheapest vegetables per pound.",
+  ing:{lentils:2,cabbage:3,carrots:1.5,onions:1,garlic:1,cumin:0.25,oil:0.08},
+  steps:["Soften diced onion, carrot and garlic in a little oil.","Add rinsed lentils, shredded cabbage, cumin and 2 cups water per serving.","Simmer 30 minutes. Salt to taste."]},
+ {id:"skillet",n:"Cabbage, potato & pinto skillet",meal:"Dinner",cal:260,pro:10,fib:10,
+  why:"Uses the cheapest vegetables in the store and leftover beans.",
+  ing:{potatoes:5,cabbage:4,onions:1,pinto:1.5,oil:0.15,chili:0.25},
+  steps:["Dice potatoes and fry in oil 10 minutes.","Add sliced onion and shredded cabbage; cook until soft.","Stir in cooked pintos and chili powder."]},
+ {id:"pasta",n:"Spaghetti with lentil tomato sauce",meal:"Dinner",cal:356,pro:17,fib:10,
+  why:"Lentils in the sauce double the protein of plain pasta.",
+  ing:{pasta:2,lentils:1,tomatoes:0.33,onions:1,garlic:1,oil:0.1},
+  steps:["Simmer lentils in water 20 minutes until soft.","Sauté onion and garlic, add tomatoes and lentils; simmer 10 minutes.","Toss with cooked spaghetti."]},
+ {id:"chili",n:"Black bean chili over rice",meal:"Dinner",cal:430,pro:16,fib:13,
+  why:"Very high fiber. Make a big pot and eat it all week.",
+  ing:{black:2,rice:1.5,tomatoes:0.33,onions:1.5,carrots:1,chili:1,cumin:0.5,oil:0.1},
+  steps:["Cook soaked black beans until tender (about 1 hour).","Sauté onion and carrot, add spices, tomatoes and beans; simmer 20 minutes.","Serve over rice."]}
+];
+const DEFAULT_PLAN={ptoast:7,oats:7,mujadara:4,pbs:5,pinto:6,splitpea:3,friedrice:2,baked:2,lentil:0,skillet:0,pasta:0,chili:2};
+
+const PV=2; // bump when the recipe set changes so old saved plans don't point at removed meals
+let S={pv:PV,plan:{...DEFAULT_PLAN},people:1,stores:{aldi:true,walmart:true,target:true,cub:true},have:{},got:{},prices:{},route:"mix",tab:"plan"};
+const LS="cheaper-cart-v1";
+try{const raw=localStorage.getItem(LS);if(raw)merge(JSON.parse(raw));}catch(e){}
+function merge(d){if(!d||typeof d!=="object")return;const keys=["people","stores","have","got","prices","route","tab"];if(d.pv===PV)keys.push("plan");else S.got={};for(const k of keys)if(d[k]!==undefined)S[k]=JSON.parse(JSON.stringify(d[k]));S.pv=PV;}
+
+// ---- persistence (private per-viewer db doc, falls back to this browser) ----
+let docRef=null,saveTimer=null,saving=Promise.resolve();
+function save(){
+  try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}
+  if(!docRef)return;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{const body=JSON.parse(JSON.stringify(S));saving=saving.then(()=>docRef.set(body)).catch(()=>{});},800);
+}
+(async()=>{
+  try{
+    if(!window.claude||!window.claude.use)return;
+    const [db,user]=await Promise.all([window.claude.use("db"),window.claude.use("user")]);
+    if(!db||!user)return;
+    const id=await user.id(); if(!id)return;
+    docRef=db.doc("data/users/"+id+"/state");
+    const snap=await docRef.get();
+    if(snap.exists){merge(snap.data());render();}
+  }catch(e){docRef=null;}
+})();
+
+// ---- math ----
+const $=s=>document.querySelector(s);
+const money=v=>"$"+v.toFixed(2);
+const enabledIdx=()=>STORES.map((s,i)=>S.stores[s.id]?i:-1).filter(i=>i>=0);
+function price(id,i){const o=S.prices[id];if(o&&o[i]!=null)return o[i];return ITEMS[id].p[i];}
+function isEdited(id,i){const o=S.prices[id];return !!(o&&o[i]!=null);}
+function cheapest(id,idxs){let best=-1,bp=Infinity;for(const i of idxs){const p=price(id,i);if(p!=null&&p<bp){bp=p;best=i;}}return best<0?null:{i:best,p:bp};}
+function needs(){
+  const need={};
+  for(const r of RECIPES){const sv=(S.plan[r.id]||0)*S.people;if(!sv)continue;for(const [k,a] of Object.entries(r.ing))need[k]=(need[k]||0)+a*sv;}
+  const out=[];
+  for(const [id,amt] of Object.entries(need)){const it=ITEMS[id];out.push({id,amt,pk:Math.ceil(amt/it.size-1e-9),have:!!S.have[id]});}
+  out.sort((a,b)=>CATS.indexOf(ITEMS[a.id].cat)-CATS.indexOf(ITEMS[b.id].cat)||ITEMS[a.id].n.localeCompare(ITEMS[b.id].n));
+  return out;
+}
+function servingCost(r){const idx=enabledIdx();let c=0;for(const [k,a] of Object.entries(r.ing)){const b=cheapest(k,idx.length?idx:[0,1,2,3]);if(b)c+=b.p*a/ITEMS[k].size;}return c;}
+// assign each item to a store for a route: "mix" = cheapest per item, or a store index (gaps filled from cheapest other store)
+function assign(route,list){
+  const idx=enabledIdx(),rows=[];
+  for(const n of list){if(n.have||!n.pk)continue;
+    let st=null,gap=false;
+    if(route==="mix"){st=cheapest(n.id,idx);}
+    else{const i=+route,p=price(n.id,i);if(p!=null)st={i,p};else{st=cheapest(n.id,idx.filter(j=>j!==i));gap=true;}}
+    rows.push({...n,st,gap,cost:st?st.p*n.pk:0});}
+  return rows;
+}
+const total=rows=>rows.reduce((s,r)=>s+r.cost,0);
+function routeOptions(){const o=[{v:"mix",label:"Cheapest mix"}];for(const i of enabledIdx())o.push({v:String(i),label:STORES[i].name+" only"});return o;}
+function validRoute(){const o=routeOptions().map(x=>x.v);if(!o.includes(S.route))S.route="mix";return S.route;}
+
+// ---- render ----
+function render(){
+  const list=needs();validRoute();
+  const rows=assign(S.route,list),wk=total(rows);
+  // weekly nutrition
+  let cal=0,pro=0,used=0;
+  for(const r of RECIPES){const sv=(S.plan[r.id]||0);cal+=r.cal*sv;pro+=r.pro*sv;used+=servingCost(r)*sv*S.people;}
+  const ppl=S.people;
+  $("#strip").innerHTML=
+   `<div><div class="k">This trip</div><div class="v">${money(wk)}</div><div class="s">${routeLabel()}</div></div>`+
+   `<div><div class="k">Per person / day</div><div class="v">${money(used/ppl/7)}</div><div class="s">food actually eaten</div></div>`+
+   `<div><div class="k">Calories / day</div><div class="v">${Math.round(cal/7).toLocaleString()}</div><div class="s">${cal/7<1800?"add servings to reach ~2,000":"per person"}</div></div>`+
+   `<div><div class="k">Protein / day</div><div class="v">${Math.round(pro/7)} g</div><div class="s">${pro/7<55?"aim for 50–60 g":"per person"}</div></div>`;
+  $("#storeChips").innerHTML=STORES.map(s=>`<button type="button" class="chip" data-store="${s.id}" aria-pressed="${!!S.stores[s.id]}">${s.name}</button>`).join("");
+  $("#pplN").textContent=S.people;
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===S.tab));
+  for(const t of ["plan","list","compare"])$("#panel-"+t).hidden=S.tab!==t;
+  if(S.tab==="plan")renderPlan();
+  if(S.tab==="list")renderList(list);
+  if(S.tab==="compare")renderCompare(list);
+}
+function routeLabel(){if(S.route==="mix")return "cheapest mix of "+enabledIdx().map(i=>STORES[i].name).join(", ");return STORES[+S.route].name+" only";}
+
+function renderPlan(){
+  const meals=RECIPES.reduce((s,r)=>s+(S.plan[r.id]||0),0);
+  $("#panel-plan").innerHTML=`<div class="route"><p class="muted small" style="margin:0">Cheapest meals first. Set how many servings of each you'll eat this week${S.people>1?" (per person)":""}. ${meals} servings planned.</p><div class="btns"><button type="button" class="btn ghost" id="resetPlan">Reset to sample week</button></div></div><div class="recipes">`+
+  RECIPES.map(r=>({r,c:servingCost(r)})).sort((a,b)=>a.c-b.c).map(({r,c})=>{const n=S.plan[r.id]||0;return `<article class="rc${n?" on":""}">
+    <div><div class="meal">${r.meal}</div><h3>${r.n}</h3></div>
+    <div class="facts"><div><b>${money(c)}</b><span>per serving</span></div><div><b>${r.cal}</b><span>calories</span></div><div><b>${r.pro} g</b><span>protein</span></div><div><b>${r.fib} g</b><span>fiber</span></div></div>
+    <p class="why">${r.why}</p>
+    <div class="stepper"><button type="button" data-step="${r.id}" data-d="-1" aria-label="Fewer servings of ${r.n}">−</button><span class="n">${n}</span><button type="button" data-step="${r.id}" data-d="1" aria-label="More servings of ${r.n}">+</button><span class="muted small">servings this week</span></div>
+    <details><summary>Ingredients & steps</summary><ul>${Object.entries(r.ing).map(([k,a])=>`<li>${fmtAmt(k,a)} ${ITEMS[k].n.toLowerCase()}</li>`).join("")}</ul><ol>${r.steps.map(s=>`<li>${s}</li>`).join("")}</ol></details>
+  </article>`}).join("")+`</div>`;
+}
+function fmtAmt(k,a){const u=ITEMS[k].u;const v=Math.round(a*100)/100;if(u==="can")return v+" can";if(u==="slice"||u==="tortilla"||u==="clove")return v+" "+u+(v===1?"":"s");return v+" "+u;}
+
+function renderList(list){
+  const rows=assign(S.route,list),groups={};
+  for(const r of rows){const k=r.st?r.st.i:-1;(groups[k]=groups[k]||[]).push(r);}
+  const have=list.filter(n=>n.have);
+  let h=`<div class="route"><label class="lbl" for="routeSel">Where to shop</label><select id="routeSel">${routeOptions().map(o=>`<option value="${o.v}"${o.v===S.route?" selected":""}>${o.label}</option>`).join("")}</select><div class="btns"><button type="button" class="btn" id="copyList">Copy list</button><button type="button" class="btn ghost" id="clearGot">Uncheck all</button></div></div>`;
+  if(!rows.length&&!have.length)h+=`<p class="muted">No meals planned yet. Add servings in Plan meals.</p>`;
+  for(const k of Object.keys(groups).sort((a,b)=>a-b)){
+    const g=groups[k],name=k<0?"Not carried at your stores":STORES[k].name;
+    h+=`<div class="storegroup"><header><h3>${name}</h3><span class="num">${money(total(g))} · ${g.length} items</span></header>`+
+    g.map(r=>{const it=ITEMS[r.id];return `<div class="li${S.got[r.id]?" got":""}"><input type="checkbox" id="got-${r.id}" data-got="${r.id}"${S.got[r.id]?" checked":""} aria-label="Got ${it.n}">
+      <label for="got-${r.id}" style="min-width:0"><div class="nm">${it.n}${r.gap?`<span class="flag">not at ${STORES[+S.route].name}</span>`:""}</div><div class="q">${r.pk} × ${it.pkg}</div></label>
+      <div class="pr"><div class="num">${money(r.cost)}</div><button type="button" class="linkbtn" data-have="${r.id}">I have this</button></div></div>`}).join("")+`</div>`;
+  }
+  if(have.length)h+=`<div class="note"><b>Already at home</b> (not on the list): <div class="haveList">${have.map(n=>`${ITEMS[n.id].n} <button type="button" class="linkbtn" data-have="${n.id}">add back</button>`).join(" · ")}</div></div>`;
+  h+=`<div id="copyFallback"></div>`;
+  $("#panel-list").innerHTML=h;
+}
+
+function renderCompare(list){
+  const idx=enabledIdx(),buy=list.filter(n=>!n.have&&n.pk);
+  const mix=total(assign("mix",list));
+  const singles=idx.map(i=>{let t=0,miss=0;for(const n of buy){const p=price(n.id,i);if(p==null)miss++;else t+=p*n.pk;}return {i,t,miss};});
+  const filled=idx.map(i=>({i,t:total(assign(String(i),list))}));
+  const worst=Math.max(mix,...filled.map(f=>f.t));
+  const bestSingle=filled.slice().sort((a,b)=>a.t-b.t)[0];
+  let h=`<div class="cards"><div class="card best"><div class="t">Cheapest mix</div><div class="v">${money(mix)}</div><div class="small muted">each item where it's cheapest${worst>mix?` · saves ${money(worst-mix)}`:""}</div></div>`+
+   singles.map(s=>`<div class="card${bestSingle&&bestSingle.i===s.i?" best":""}"><div class="t">${STORES[s.i].name} only</div><div class="v">${money(s.t)}</div><div class="small muted">${s.miss?`${s.miss} item${s.miss>1?"s":""} not carried`:"everything on the list"}${bestSingle&&bestSingle.i===s.i?" · best single store":""}</div></div>`).join("")+`</div>`;
+  if(!idx.length)h+=`<p class="muted">Turn on at least one store above.</p>`;
+  h+=`<p class="small muted">Prices are per package. Yellow tag = cheapest among your stores. Tap a price to type the real one; <span class="edited">•</span> marks prices you entered. <button type="button" class="linkbtn" id="resetPrices">Reset my prices</button></p>`;
+  h+=`<div class="tablewrap"><table><thead><tr><th>Item</th><th>Buy</th>${idx.map(i=>`<th>${STORES[i].name}</th>`).join("")}</tr></thead><tbody>`;
+  for(const n of buy){const it=ITEMS[n.id],b=cheapest(n.id,idx);
+    h+=`<tr><td><b>${it.n}</b><div class="small muted">${it.pkg}</div></td><td class="num">${n.pk}</td>`+idx.map(i=>{const p=price(n.id,i);
+      if(p==null)return `<td class="p na"><button type="button" data-edit="${n.id}" data-si="${i}" style="font-size:12px">not carried</button></td>`;
+      return `<td class="p${b&&b.i===i?" low":""}"><button type="button" data-edit="${n.id}" data-si="${i}" aria-label="Edit ${it.n} price at ${STORES[i].name}">${money(p)}${isEdited(n.id,i)?'<span class="edited"> •</span>':""}</button><span class="u">${unitPrice(p,it)}</span></td>`}).join("")+`</tr>`;}
+  h+=`</tbody><tfoot><tr><td>Total for this list</td><td></td>${singles.map(s=>`<td class="num">${money(s.t)}${s.miss?`<div class="small muted">+${s.miss} missing</div>`:""}</td>`).join("")}</tr></tfoot></table></div>`;
+  $("#panel-compare").innerHTML=h;
+}
+function unitPrice(p,it){const v=p/it.size;return (v<0.1?"$"+v.toFixed(3):"$"+v.toFixed(2))+"/"+it.u.replace("fl oz","fl oz");}
+
+// ---- events ----
+document.addEventListener("click",e=>{
+  const t=e.target.closest("button");if(!t)return;
+  if(t.dataset.tab){S.tab=t.dataset.tab;save();render();return;}
+  if(t.dataset.store){const id=t.dataset.store;S.stores[id]=!S.stores[id];save();render();return;}
+  if(t.dataset.step){const id=t.dataset.step;S.plan[id]=Math.max(0,Math.min(21,(S.plan[id]||0)+ +t.dataset.d));save();render();return;}
+  if(t.dataset.have){const id=t.dataset.have;if(S.have[id])delete S.have[id];else S.have[id]=true;save();render();return;}
+  if(t.dataset.edit){startEdit(t);return;}
+  if(t.id==="pplMinus"||t.id==="pplPlus"){S.people=Math.max(1,Math.min(8,S.people+(t.id==="pplPlus"?1:-1)));save();render();return;}
+  if(t.id==="resetPlan"){S.plan={...DEFAULT_PLAN};save();render();toast("Sample week restored");return;}
+  if(t.id==="resetPrices"){if(t.dataset.confirm){S.prices={};save();render();toast("Prices reset to estimates");}else{t.dataset.confirm="1";t.textContent="Tap again to reset all your prices";}return;}
+  if(t.id==="clearGot"){S.got={};save();render();return;}
+  if(t.id==="copyList"){copyList();return;}
+});
+document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset&&t.dataset.got){const id=t.dataset.got;if(t.checked)S.got[id]=true;else delete S.got[id];save();render();}
+  if(t.id==="routeSel"){S.route=t.value;save();render();}
+});
+function startEdit(btn){
+  const id=btn.dataset.edit,i=+btn.dataset.si,td=btn.parentElement,cur=price(id,i);
+  td.innerHTML=`<input type="number" step="0.01" min="0" inputmode="decimal" id="edit-${id}-${i}" value="${cur==null?"":cur.toFixed(2)}" aria-label="New price" placeholder="0.00">`;
+  const inp=td.querySelector("input");inp.focus();inp.select();
+  let done=false;
+  const commit=keep=>{if(done)return;done=true;
+    if(keep){const v=inp.value.trim();const o=S.prices[id]?[...S.prices[id]]:[null,null,null,null];
+      if(v===""){o[i]=null;}else{const n=parseFloat(v);if(isFinite(n)&&n>=0)o[i]=Math.round(n*100)/100;}
+      if(o.every(x=>x==null))delete S.prices[id];else S.prices[id]=o;save();}
+    render();};
+  inp.addEventListener("keydown",ev=>{if(ev.key==="Enter")commit(true);if(ev.key==="Escape")commit(false);});
+  inp.addEventListener("blur",()=>commit(true));
+}
+function listText(){
+  const rows=assign(S.route,needs()),groups={};
+  for(const r of rows){const k=r.st?STORES[r.st.i].name:"Other";(groups[k]=groups[k]||[]).push(r);}
+  let s="Cheaper Cart list — "+money(total(rows))+"\n";
+  for(const [k,g] of Object.entries(groups)){s+="\n"+k.toUpperCase()+" ("+money(total(g))+")\n";for(const r of g)s+="[ ] "+r.pk+" x "+ITEMS[r.id].n+" ("+ITEMS[r.id].pkg+") "+money(r.cost)+"\n";}
+  return s;
+}
+function copyList(){
+  const txt=listText();
+  const fallback=()=>{const box=$("#copyFallback");if(box){box.innerHTML=`<textarea class="copyfallback" id="copyText" readonly></textarea>`;const ta=$("#copyText");ta.value=txt;ta.focus();ta.select();toast("Select all and copy");}};
+  try{navigator.clipboard.writeText(txt).then(()=>toast("List copied"),fallback);}catch(e){fallback();}
+}
+let tt;function toast(m){const el=$("#toast");el.textContent=m;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,1800);}
+render();
+})();
+</script>
+</body>
+</html>
