@@ -71,7 +71,8 @@ section.panel{padding-top:18px}
 details summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--accent)}
 details ul,details ol{margin:6px 0 0;padding-left:18px;font-size:13px}
 
-.planfilter{margin-bottom:12px}
+.planfilter{margin-bottom:10px}
+.rc .meal .cui{color:var(--accent)}
 .planfilter .chip .muted{font-weight:500}
 .planfilter .chip[aria-pressed="true"] .muted{color:inherit;opacity:.75}
 /* List */
@@ -422,8 +423,54 @@ const RECIPES=[
  {id:"bites",n:"Peanut butter oat energy bites",meal:"Snack",cal:215,pro:6,fib:4,
   why:"Make a batch on Sunday for grab-and-go snacks all week.",
   ing:{oats:0.7,pb:0.56,banana:2},
-  steps:["Mash banana with peanut butter, then stir in oats.","Roll into balls and chill for 30 minutes. Keeps 5 days in the fridge."]}
+  steps:["Mash banana with peanut butter, then stir in oats.","Roll into balls and chill for 30 minutes. Keeps 5 days in the fridge."]},
+ // --- Mexican ---
+ {id:"tacos",n:"Pinto bean & rice tacos with cabbage slaw",meal:"Dinner",cui:"mx",cal:440,pro:15,fib:13,
+  why:"Corn tortillas are one of the cheapest whole grains. Beans plus corn make a complete protein.",
+  ing:{ctort:3,pinto:1.5,rice:1,cabbage:1,chili:0.5,cumin:0.25,oil:0.1},
+  steps:["Warm cooked pintos with chili powder, cumin and a little oil; mash some.","Heat tortillas in a dry pan.","Fill with rice and beans and top with finely shredded cabbage."]},
+ {id:"enchilada",n:"Black bean enchilada skillet",meal:"Dinner",cui:"mx",cal:330,pro:13,fib:12,
+  why:"All the flavor of enchiladas in one pan, with no rolling or baking.",
+  ing:{ctort:2,black:1.5,tomatoes:0.5,onions:1,chili:1,cumin:0.25,oil:0.1},
+  steps:["Sauté onion in oil, add chili powder, cumin and tomatoes; simmer 5 minutes for a sauce.","Stir in cooked black beans and tortillas torn into strips.","Cover and cook 5 minutes until the tortillas soften."]},
+ {id:"fideo",n:"Sopa de fideo with black beans",meal:"Lunch or dinner",cui:"mx",cal:315,pro:12,fib:9,
+  why:"A Mexican home-style tomato noodle soup, made heartier with beans.",
+  ing:{pasta:1.5,tomatoes:0.5,onions:1,garlic:1,black:1,cumin:0.25,oil:0.1},
+  steps:["Break spaghetti into short pieces and toast in oil until golden.","Add onion, garlic, tomatoes, cumin and 1½ cups water per serving.","Add cooked black beans and simmer 10 minutes until the noodles are soft."]},
+ {id:"tacospapa",n:"Potato & pinto tacos (tacos de papa)",meal:"Lunch or dinner",cui:"mx",cal:390,pro:11,fib:11,
+  why:"Potatoes and beans stretch a few tortillas into a filling meal.",
+  ing:{ctort:3,potatoes:4,pinto:1,onions:0.5,chili:0.5,oil:0.15},
+  steps:["Boil diced potato until soft, then mash with cooked pintos and chili powder.","Fry onion in oil and stir into the filling.","Fill warm tortillas and crisp them in the pan if you like."]},
+ // --- Chinese ---
+ {id:"lomein",n:"Vegetable lo mein",meal:"Dinner",cui:"cn",cal:300,pro:11,fib:7,
+  why:"Spaghetti works well as lo mein noodles and costs far less than takeout.",
+  ing:{pasta:2,soysauce:0.5,mixveg:2,cabbage:2,garlic:1,oil:0.15},
+  steps:["Cook spaghetti and drain.","Stir-fry garlic, frozen mixed vegetables and shredded cabbage in oil over high heat, 4 minutes.","Add the noodles and soy sauce and toss until coated."]},
+ {id:"mapo",n:"Mapo-style spicy tofu over rice",meal:"Dinner",cui:"cn",cal:400,pro:20,fib:6,
+  why:"The highest-protein meal in the app. Tofu adds calcium and iron.",
+  ing:{tofu:3.5,rice:2,mixveg:1.5,soysauce:0.5,garlic:1,chili:0.5,oil:0.1},
+  steps:["Cook rice.","Fry garlic and chili powder in oil for 30 seconds; add cubed tofu, frozen veg, soy sauce and a splash of water.","Simmer 5 minutes and spoon over rice."]},
+ {id:"cabbagetofu",n:"Garlic cabbage & tofu stir-fry",meal:"Dinner",cui:"cn",cal:400,pro:17,fib:6,
+  why:"A classic Chinese home dish. A whole head of cabbage feeds a family.",
+  ing:{cabbage:5,tofu:3,rice:2,soysauce:0.5,garlic:1,oil:0.15},
+  steps:["Cook rice.","Brown cubed tofu in oil, then add garlic and roughly chopped cabbage.","Stir-fry over high heat until the cabbage wilts, add soy sauce, and serve over rice."]},
+ // --- other Asian ---
+ {id:"thaicurry",n:"Thai-style peanut curry with potatoes",meal:"Dinner",cui:"as",cal:480,pro:13,fib:9,
+  why:"Peanut butter makes a rich curry sauce without coconut milk.",
+  ing:{pb:1.1,mixveg:3,potatoes:3,rice:1.5,soysauce:0.25,chili:0.25,garlic:1},
+  steps:["Cook rice. Boil diced potato 10 minutes.","Whisk peanut butter, soy sauce, garlic, chili powder and ½ cup hot water into a sauce.","Simmer the sauce with the potatoes and frozen vegetables 5 minutes; serve over rice."]},
+ {id:"bibimbap",n:"Korean-style tofu & veggie rice bowl",meal:"Dinner",cui:"as",cal:365,pro:14,fib:5,
+  why:"Inspired by bibimbap: rice topped with seasoned vegetables and tofu.",
+  ing:{rice:2,tofu:2.5,carrots:1.5,cabbage:2,soysauce:0.5,chili:0.25,garlic:1,oil:0.1},
+  steps:["Cook rice.","Stir-fry shredded carrot and cabbage with garlic; brown tofu with soy sauce and chili powder.","Arrange everything over the rice."]},
+ {id:"chana",n:"Chickpea masala over rice",meal:"Dinner",cui:"as",cal:400,pro:12,fib:10,
+  why:"An Indian favorite. Canned chickpeas make it a 20-minute meal.",
+  ing:{cchick:0.5,rice:1.5,tomatoes:0.5,onions:1.5,garlic:1,cumin:0.5,chili:0.25,oil:0.1},
+  steps:["Cook rice.","Fry diced onion and garlic in oil; add cumin and chili powder for 30 seconds.","Add tomatoes and drained chickpeas, simmer 10 minutes, and serve over rice."]}
 ];
+// cuisine tags: mx Mexican, cn Chinese, as other Asian (Indian, Thai, Korean)
+const CUISINES=[["all","Any cuisine"],["mx","Mexican"],["cn","Chinese"],["as","Other Asian"]];
+Object.entries({pinto:"mx",chili:"mx",bowl:"mx",friedrice:"cn",pbnoodles:"cn",vegnoodles:"cn",dal:"as",curry:"as"}).forEach(([id,c])=>{const r=RECIPES.find(x=>x.id===id);if(r)r.cui=c;});
 const slotOf=r=>/Breakfast/.test(r.meal)?"b":/Snack/.test(r.meal)?"s":"m";
 const DEFAULT_PLAN={ptoast:7,oats:7,mujadara:4,pbs:5,pinto:6,splitpea:3,friedrice:2,baked:2,lentil:0,skillet:0,pasta:0,chili:2};
 
@@ -431,7 +478,7 @@ const PV=2; // bump when the recipe set changes so old saved plans don't point a
 let S={pv:PV,plan:{...DEFAULT_PLAN},people:1,stores:{aldi:true,walmart:true,target:true,cub:true,hyvee:true},have:{},got:{},prices:{},route:"mix",tab:"plan",theme:{bg:"black",accent:"green"},extra:{}};
 const LS="cheaper-cart-v1";
 try{const raw=localStorage.getItem(LS);if(raw)merge(JSON.parse(raw));}catch(e){}
-function merge(d){if(!d||typeof d!=="object")return;const keys=["people","stores","have","got","prices","route","tab","theme","extra","live","liveAt","pf"];if(d.pv===PV)keys.push("plan");else S.got={};for(const k of keys)if(d[k]!==undefined)S[k]=JSON.parse(JSON.stringify(d[k]));S.pv=PV;for(const st of STORES)if(S.stores[st.id]===undefined)S.stores[st.id]=true;}
+function merge(d){if(!d||typeof d!=="object")return;const keys=["people","stores","have","got","prices","route","tab","theme","extra","live","liveAt","pf","cf"];if(d.pv===PV)keys.push("plan");else S.got={};for(const k of keys)if(d[k]!==undefined)S[k]=JSON.parse(JSON.stringify(d[k]));S.pv=PV;for(const st of STORES)if(S.stores[st.id]===undefined)S.stores[st.id]=true;}
 
 // ---- persistence (private per-viewer db doc, falls back to this browser) ----
 let docRef=null,saveTimer=null,saving=Promise.resolve();
@@ -475,6 +522,7 @@ function buy(n,i){const p=price(n.id,i);if(p==null)return null;const it=ITEMS[n.
   if(L){const q=Math.max(1,Math.ceil(n.amt/(it.size*L.pk)-1e-9));return {cost:q*L.raw,label:q+" × "+L.prod,live:true};}
   return {cost:p*n.pk,label:n.pk+" × "+it.pkg,live:false};}
 const ITEM_Q={oats:"old fashioned oats",rice:"brown rice",pasta:"whole wheat spaghetti",bread:"whole wheat bread",lentils:"dry lentils",pinto:"dry pinto beans",black:"dry black beans",splitpea:"dry split peas",pb:"creamy peanut butter",banana:"bananas",carrots:"carrots 2 lb bag",onions:"yellow onions 3 lb bag",garlic:"garlic",potatoes:"russet potatoes 5 lb",cabbage:"green cabbage",mixveg:"frozen mixed vegetables",tomatoes:"canned diced tomatoes",oil:"vegetable oil",chili:"chili powder",cumin:"ground cumin"};
+Object.assign(ITEM_Q,{ctort:"corn tortillas",soysauce:"soy sauce",tofu:"firm tofu",cchick:"canned chickpeas"});
 const itemQuery=id=>ITEM_Q[id]||ITEMS[id].n.toLowerCase().replace(/\(.*?\)/g,"").trim();
 function cheapest(id,idxs){let best=-1,bp=Infinity;for(const i of idxs){const p=price(id,i);if(p!=null&&p<bp){bp=p;best=i;}}return best<0?null:{i:best,p:bp};}
 function needs(){
@@ -584,9 +632,10 @@ function renderPlan(){
   const meals=RECIPES.reduce((s,r)=>s+(S.plan[r.id]||0),0),pf=S.pf||"all";
   $("#panel-plan").innerHTML=`<div class="route"><p class="muted small" style="margin:0">Cheapest meals first. Set how many servings of each you'll eat this week${S.people>1?" (per person)":""}, or shuffle for a new week. ${meals} servings planned.</p><div class="btns"><button type="button" class="btn" id="shufflePlan">Shuffle my week</button>${PREV_PLAN?`<button type="button" class="btn ghost" id="undoPlan">Undo shuffle</button>`:""}<button type="button" class="btn ghost" id="resetPlan">Reset to sample week</button></div></div>
   <div class="chips planfilter">${PLAN_FILTERS.map(([k,l])=>`<button type="button" class="chip" data-pf="${k}" aria-pressed="${pf===k}">${l} <span class="muted">${k==="all"?RECIPES.length:RECIPES.filter(r=>slotOf(r)===k).length}</span></button>`).join("")}</div>
+  <div class="chips planfilter">${CUISINES.map(([k,l])=>`<button type="button" class="chip" data-cf="${k}" aria-pressed="${(S.cf||"all")===k}">${l} <span class="muted">${k==="all"?RECIPES.length:RECIPES.filter(r=>r.cui===k).length}</span></button>`).join("")}</div>
   <div class="recipes">`+
-  RECIPES.filter(r=>pf==="all"||slotOf(r)===pf).map(r=>({r,c:servingCost(r)})).sort((a,b)=>a.c-b.c).map(({r,c})=>{const n=S.plan[r.id]||0;return `<article class="rc${n?" on":""}">
-    <div><div class="meal">${r.meal}</div><h3>${r.n}</h3></div>
+  RECIPES.filter(r=>(pf==="all"||slotOf(r)===pf)&&((S.cf||"all")==="all"||r.cui===S.cf)).map(r=>({r,c:servingCost(r)})).sort((a,b)=>a.c-b.c).map(({r,c})=>{const n=S.plan[r.id]||0;return `<article class="rc${n?" on":""}">
+    <div><div class="meal">${r.meal}${r.cui?` · <span class="cui">${CUISINES.find(c=>c[0]===r.cui)[1]}</span>`:""}</div><h3>${r.n}</h3></div>
     <div class="facts"><div><b>${money(c)}</b><span>per serving</span></div><div><b>${r.cal}</b><span>calories</span></div><div><b>${r.pro} g</b><span>protein</span></div><div><b>${r.fib} g</b><span>fiber</span></div></div>
     <p class="why">${r.why}</p>
     <div class="stepper"><button type="button" data-step="${r.id}" data-d="-1" aria-label="Fewer servings of ${r.n}">−</button><span class="n">${n}</span><button type="button" data-step="${r.id}" data-d="1" aria-label="More servings of ${r.n}">+</button><span class="muted small">servings this week</span></div>
@@ -823,6 +872,7 @@ document.addEventListener("click",e=>{
   if(t.id==="shufflePlan"){shufflePlan();return;}
   if(t.id==="undoPlan"){if(PREV_PLAN){S.plan=PREV_PLAN;PREV_PLAN=null;save();render();toast("Previous week restored");}return;}
   if(t.dataset.pf){S.pf=t.dataset.pf;save();render();return;}
+  if(t.dataset.cf){S.cf=t.dataset.cf;save();render();return;}
   if(t.id==="resetPrices"){if(t.dataset.confirm){S.prices={};save();render();toast("Prices reset to estimates");}else{t.dataset.confirm="1";t.textContent="Tap again to reset all your prices";}return;}
   if(t.id==="clearGot"){S.got={};save();render();return;}
   if(t.id==="copyList"){copyList();return;}
