@@ -14,8 +14,9 @@
 /* Layout: a summary "receipt strip" up top, then three working tabs (plan → list → compare). Shelf-tag yellow marks the cheapest price. */
 /* Default look: black background, white text. The in-app Theme menu swaps these tokens (see THEMES in the script). */
 :root{
-  --bg:#000000; --surface:#121212; --sunk:#1c1c1c; --fg:#ffffff; --muted:#b4b4b4; --line:#333333;
-  --accent:#5fcf86; --accent-fg:#000000; --tag:#ffd84a; --tag-fg:#2a2300; --warn:#ff9b6a; --warn-bg:#3a1f12;
+  --bg:#000000; --surface:#141414; --sunk:#202020; --fg:#ffffff; --muted:#e2e2e2; --line:#6b6b6b;
+  --accent:#5fcf86; --accent-fg:#000000; --tag:#ffd84a; --tag-fg:#2a2300; --warn:#ffb38a; --warn-bg:#3a1f12;
+  --cat-b:#ffc861; --cat-m:#7fe0a0; --cat-s:#8cc8ff;
   --display:"Archivo","Arial Narrow",Arial,sans-serif; --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
   color-scheme:dark;
 }
@@ -160,6 +161,55 @@ td.p input{width:72px;text-align:right;font-family:var(--mono);padding:3px 4px;b
 .bgopt[aria-pressed="true"]{border-color:var(--accent)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:8px;font-weight:600;font-size:14px}
 textarea.copyfallback{width:100%;min-height:160px;margin-top:10px;font-family:var(--mono);font-size:12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px}
+/* ===== Readability layer: larger type, no faded text, clearer structure ===== */
+body{font-size:17px;line-height:1.55}
+h2{font-size:24px} h3{font-size:20px;line-height:1.2}
+.small{font-size:15px}
+.lede{font-size:18px;color:var(--fg)}
+.strip .k{font-size:13px;color:var(--fg);font-weight:700}
+.strip .v{font-size:28px}
+.strip>div:first-child .v{color:var(--accent)}
+.strip .s{font-size:14px}
+.chip{font-size:15px;padding:6px 14px;border-width:2px}
+.lbl{font-size:14px;color:var(--fg);font-weight:700}
+nav.tabs button{font-size:19px;padding:12px 16px;color:var(--muted)}
+.rc{padding:18px;border-radius:14px;gap:12px;border-width:2px}
+.rc.on{box-shadow:inset 0 0 0 1px var(--accent)}
+.rc .meal{display:flex;flex-wrap:wrap;gap:6px;font-size:13px;letter-spacing:.06em;color:var(--fg)}
+.rc .meal .pill{border:2px solid currentColor;border-radius:999px;padding:1px 10px;font-weight:800}
+.pill.b{color:var(--cat-b)} .pill.m{color:var(--cat-m)} .pill.s{color:var(--cat-s)}
+.rc .meal .cui{border:2px solid var(--line);border-radius:999px;padding:1px 10px;color:var(--fg)}
+.facts{padding:10px;border-radius:10px;gap:6px}
+.facts b{font-size:17px}
+.facts div:first-child b{color:var(--accent)}
+.facts span{font-size:13px;color:var(--muted)}
+.why{font-size:15px;color:var(--muted)}
+.stepper button{width:44px;height:44px;font-size:22px;border-width:2px}
+.stepper .n{font-size:20px}
+details summary{font-size:15px;padding:4px 0}
+details ul,details ol{font-size:15px}
+.li{padding:12px 16px}
+.li .q{font-size:15px}
+.li input[type=checkbox]{width:24px;height:24px}
+.flag{font-size:13px}
+.linkbtn{font-size:14px}
+.btn{padding:10px 16px;font-size:16px;border-width:2px}
+.btn:disabled{opacity:1;background:var(--sunk);color:var(--fg);border-style:dashed;border-color:var(--line)}
+.card .v{font-size:24px}
+table{font-size:15px}
+td.p .u,.sp .u{font-size:12px;color:var(--muted)}
+td.p.na{font-size:13px}
+.note{font-size:15px}
+.sp .sn{font-size:12px;color:var(--fg)}
+.sp.off{opacity:1;background:transparent;border:2px dashed var(--line)}
+.sp.off .sn::after{content:" (off)";font-weight:600}
+.sp .p.na button{font-size:12px}
+.livetag{font-size:12px;padding:0 5px}
+.livefail{font-size:12px}
+.toast{font-size:16px;padding:10px 16px}
+.storegroup,.card,.scard,.note,.tablewrap,.strip{border-width:2px}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 @media (prefers-reduced-motion:no-preference){.rc,.chip,.btn{transition:border-color .15s,background .15s}}
 </style>
 
@@ -217,7 +267,7 @@ textarea.copyfallback{width:100%;min-height:160px;margin-top:10px;font-family:va
       <button type="button" class="btn" id="qGo">Search</button>
       <button type="button" class="btn ghost" id="qClear" hidden>Clear</button>
     </div>
-    <div id="searchResults" aria-live="polite"></div>
+    <div id="searchResults"></div>
   </div>
 
   <nav class="tabs" role="tablist">
@@ -243,7 +293,8 @@ textarea.copyfallback{width:100%;min-height:160px;margin-top:10px;font-family:va
     </ul>
   </div>
 </div>
-<div class="toast" id="toast" hidden></div>
+<div class="toast" id="toast" hidden aria-hidden="true"></div>
+<div id="srStatus" class="sr" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script>
 (function(){
@@ -556,10 +607,11 @@ function validRoute(){const o=routeOptions().map(x=>x.v);if(!o.includes(S.route)
 // ---- render ----
 // ---- theme ----
 const THEMES={
-  black:{label:"Black",dark:true,v:{bg:"#000000",surface:"#121212",sunk:"#1c1c1c",fg:"#ffffff",muted:"#b4b4b4",line:"#333333",warn:"#ff9b6a","warn-bg":"#3a1f12"}},
-  charcoal:{label:"Charcoal",dark:true,v:{bg:"#1b1e22",surface:"#252a30",sunk:"#15181b",fg:"#f4f4f4",muted:"#aab2bb",line:"#3a414a",warn:"#ff9b6a","warn-bg":"#3a2418"}},
-  navy:{label:"Navy",dark:true,v:{bg:"#0b1424",surface:"#13203a",sunk:"#08101d",fg:"#f2f6ff",muted:"#a4b3cc",line:"#263756",warn:"#ff9b6a","warn-bg":"#3a2418"}},
-  light:{label:"Light",dark:false,v:{bg:"#f3f6f1",surface:"#ffffff",sunk:"#e8eee5",fg:"#1b2a1f",muted:"#5b6b5f",line:"#d3ddd0",warn:"#a24a14","warn-bg":"#fbe9dc"}}
+  // "muted" (secondary text) is kept at 10:1 contrast or better on every surface; "line" (borders) at 3:1 or better
+  black:{label:"Black",dark:true,v:{bg:"#000000",surface:"#141414",sunk:"#202020",fg:"#ffffff",muted:"#e2e2e2",line:"#6b6b6b",warn:"#ffb38a","warn-bg":"#3a1f12","cat-b":"#ffc861","cat-m":"#7fe0a0","cat-s":"#8cc8ff"}},
+  charcoal:{label:"Charcoal",dark:true,v:{bg:"#1b1e22",surface:"#252a30",sunk:"#15181b",fg:"#ffffff",muted:"#e6eaef",line:"#6e7884",warn:"#ffb38a","warn-bg":"#3a2418","cat-b":"#ffc861","cat-m":"#7fe0a0","cat-s":"#8cc8ff"}},
+  navy:{label:"Navy",dark:true,v:{bg:"#0b1424",surface:"#13203a",sunk:"#08101d",fg:"#ffffff",muted:"#e1e9f6",line:"#5e78a6",warn:"#ffb38a","warn-bg":"#3a2418","cat-b":"#ffc861","cat-m":"#7fe0a0","cat-s":"#9ed0ff"}},
+  light:{label:"Light",dark:false,v:{bg:"#f3f6f1",surface:"#ffffff",sunk:"#e8eee5",fg:"#111a14",muted:"#2f3b33",line:"#7f8f82",warn:"#8a3a0c","warn-bg":"#fbe9dc","cat-b":"#7a4b00","cat-m":"#155c2f","cat-s":"#0f4f8a"}}
 };
 // each accent: [bright for dark backgrounds, deep for light backgrounds]
 const ACCENTS={green:["#5fcf86","#1f6b3a"],blue:["#6cb4ff","#1f5fae"],orange:["#ffa45c","#a8500f"],pink:["#ff7ab8","#a8236a"],purple:["#b89cff","#5b3fb0"],yellow:["#ffd84a","#7a5d00"],mono:["#ffffff","#1b1b1b"]};
@@ -573,7 +625,20 @@ function applyTheme(){
   $("#bgOpts").innerHTML=Object.entries(THEMES).map(([k,t])=>`<button type="button" class="bgopt" data-bg="${k}" aria-pressed="${(cur.bg||"black")===k}" style="background:${t.v.bg};color:${t.v.fg}">${t.label}</button>`).join("");
   $("#accentOpts").innerHTML=Object.entries(ACCENTS).map(([k,a])=>`<button type="button" class="sw" data-accent="${k}" aria-pressed="${(cur.accent||"green")===k}" aria-label="${k} accent" title="${k}" style="background:${th.dark?a[0]:a[1]}"></button>`).join("");
 }
+// Keep keyboard/screen-reader focus on the same control after a redraw (render rebuilds most of the page's HTML).
+const FOCUS_KEYS=["step","d","store","have","got","edit","si","extra","tab","pf","cf","bg","accent","livecheck"];
+function focusSelector(el){
+  if(!el||el===document.body)return null;
+  if(el.id&&el.id!=="q")return "#"+CSS.escape(el.id);
+  const attrs=FOCUS_KEYS.filter(k=>el.dataset&&el.dataset[k]!==undefined).map(k=>`[data-${k}="${CSS.escape(el.dataset[k])}"]`);
+  return attrs.length?el.tagName.toLowerCase()+attrs.join(""):null;
+}
 function render(){
+  const fsel=focusSelector(document.activeElement);
+  renderInner();
+  if(fsel&&document.activeElement===document.body){const el=document.querySelector(fsel);if(el)el.focus({preventScroll:true});}
+}
+function renderInner(){
   applyTheme();
   const list=needs();validRoute();
   const rows=assign(S.route,list),wk=total(rows);
@@ -637,11 +702,11 @@ function renderPlan(){
   <div class="chips planfilter">${PLAN_FILTERS.map(([k,l])=>`<button type="button" class="chip" data-pf="${k}" aria-pressed="${pf===k}">${l} <span class="muted">${k==="all"?RECIPES.length:RECIPES.filter(r=>slotOf(r)===k).length}</span></button>`).join("")}</div>
   <div class="chips planfilter">${CUISINES.map(([k,l])=>`<button type="button" class="chip" data-cf="${k}" aria-pressed="${(S.cf||"all")===k}">${l} <span class="muted">${k==="all"?RECIPES.length:RECIPES.filter(r=>r.cui===k).length}</span></button>`).join("")}</div>
   <div class="recipes">`+
-  RECIPES.filter(r=>(pf==="all"||slotOf(r)===pf)&&((S.cf||"all")==="all"||r.cui===S.cf)).map(r=>({r,c:servingCost(r)})).sort((a,b)=>a.c-b.c).map(({r,c})=>{const n=S.plan[r.id]||0;return `<article class="rc${n?" on":""}">
-    <div><div class="meal">${r.meal}${r.cui?` · <span class="cui">${CUISINES.find(c=>c[0]===r.cui)[1]}</span>`:""}</div><h3>${r.n}</h3></div>
+  RECIPES.filter(r=>(pf==="all"||slotOf(r)===pf)&&((S.cf||"all")==="all"||r.cui===S.cf)).map(r=>({r,c:servingCost(r)})).sort((a,b)=>a.c-b.c).map(({r,c})=>{const n=S.plan[r.id]||0;return `<article class="rc${n?" on":""}" aria-labelledby="rh-${r.id}">
+    <div><div class="meal"><span class="pill ${slotOf(r)}">${r.meal}</span>${r.cui?`<span class="cui">${CUISINES.find(c=>c[0]===r.cui)[1]}</span>`:""}</div><h3 id="rh-${r.id}">${r.n}</h3></div>
     <div class="facts"><div><b>${money(c)}</b><span>per serving</span></div><div><b>${r.cal}</b><span>calories</span></div><div><b>${r.pro} g</b><span>protein</span></div><div><b>${r.fib} g</b><span>fiber</span></div></div>
     <p class="why">${r.why}</p>
-    <div class="stepper"><button type="button" data-step="${r.id}" data-d="-1" aria-label="Fewer servings of ${r.n}">−</button><span class="n">${n}</span><button type="button" data-step="${r.id}" data-d="1" aria-label="More servings of ${r.n}">+</button><span class="muted small">servings this week</span></div>
+    <div class="stepper"><button type="button" data-step="${r.id}" data-d="-1" aria-label="Fewer servings of ${r.n}">−</button><span class="n" aria-hidden="true">${n}</span><button type="button" data-step="${r.id}" data-d="1" aria-label="More servings of ${r.n}">+</button><span class="muted small"><span class="sr">${n} </span>servings this week</span></div>
     <details><summary>Ingredients & steps</summary><ul>${Object.entries(r.ing).map(([k,a])=>`<li>${fmtAmt(k,a)} ${ITEMS[k].n.toLowerCase()}</li>`).join("")}</ul><ol>${r.steps.map(s=>`<li>${s}</li>`).join("")}</ol></details>
   </article>`}).join("")+`</div>`;
 }
@@ -684,7 +749,7 @@ function renderCompare(list){
   h+=`</tbody><tfoot><tr><td>Total for this list</td><td></td>${singles.map(s=>`<td class="num">${money(s.t)}${s.miss?`<div class="small muted">+${s.miss} missing</div>`:""}</td>`).join("")}</tr></tfoot></table></div>`;
   $("#panel-compare").innerHTML=h;
 }
-function liveMark(id,i){if(isLive(id,i)){const L=liveCell(id,i);return `<span class="livetag" title="${esc(L.prod)} — ${money(L.raw)}">live</span>`;}const f=LIVE_FAIL[id+":"+i];return f?`<span class="livefail" title="${esc(f)}">not found</span>`:"";}
+function liveMark(id,i){if(isLive(id,i)){const L=liveCell(id,i);return `<span class="livetag" title="${esc(L.prod)} — ${money(L.raw)}">live<span class="sr"> price: ${esc(L.prod)}, ${money(L.raw)}</span></span>`;}const f=LIVE_FAIL[id+":"+i];return f?`<span class="livefail" title="${esc(f)}">not found<span class="sr">: ${esc(f)}</span></span>`:"";}
 function unitPrice(p,it){const v=p/it.size;return (v<0.1?"$"+v.toFixed(3):"$"+v.toFixed(2))+"/"+it.u.replace("fl oz","fl oz");}
 
 // ---- search ----
@@ -860,14 +925,14 @@ document.addEventListener("click",e=>{
     t.dataset.armed="1";t.textContent=`Start: ${n*s} lookups, about ${Math.max(1,Math.round(n*s*7/60))} min`;$("#liveCancel").hidden=false;return;}
   if(t.id==="liveCancel"){disarmLive();return;}
   if(t.dataset.livecheck){if(!liveCtl)runLive([t.dataset.livecheck]);return;}
-  if(t.id==="qGo"){renderSearch();if(!$("#q").value.trim())$("#q").focus();return;}
+  if(t.id==="qGo"){searchAndAnnounce();if(!$("#q").value.trim())$("#q").focus();return;}
   if(t.id==="liveStop"){if(liveCtl)liveCtl.abort();return;}
   if(t.id==="qClear"){$("#q").value="";renderSearch();$("#q").focus();return;}
   if(t.dataset.bg){S.theme={...S.theme,bg:t.dataset.bg};save();render();return;}
   if(t.dataset.accent){S.theme={...S.theme,accent:t.dataset.accent};save();render();return;}
   if(t.dataset.tab){S.tab=t.dataset.tab;save();render();return;}
   if(t.dataset.store){const id=t.dataset.store;S.stores[id]=!S.stores[id];save();render();return;}
-  if(t.dataset.step){const id=t.dataset.step;S.plan[id]=Math.max(0,Math.min(21,(S.plan[id]||0)+ +t.dataset.d));save();render();return;}
+  if(t.dataset.step){const id=t.dataset.step;S.plan[id]=Math.max(0,Math.min(21,(S.plan[id]||0)+ +t.dataset.d));save();render();const r=RECIPES.find(x=>x.id===id);announce(`${r.n}: ${S.plan[id]} serving${S.plan[id]===1?"":"s"} this week`);return;}
   if(t.dataset.have){const id=t.dataset.have;if(S.have[id])delete S.have[id];else S.have[id]=true;save();render();return;}
   if(t.dataset.edit){startEdit(t);return;}
   if(t.id==="pplMinus"||t.id==="pplPlus"){S.people=Math.max(1,Math.min(8,S.people+(t.id==="pplPlus"?1:-1)));save();render();return;}
@@ -880,13 +945,14 @@ document.addEventListener("click",e=>{
   if(t.id==="clearGot"){S.got={};save();render();return;}
   if(t.id==="copyList"){copyList();return;}
 });
-$("#q").addEventListener("input",renderSearch);
+let qT;function searchAndAnnounce(){renderSearch();clearTimeout(qT);qT=setTimeout(()=>{const q=$("#q").value.trim();if(!q)return;const n=searchItems(q).length;announce(n?`${n} result${n===1?"":"s"} for ${q}. Each result lists prices at every store.`:`No results for ${q}. Store website links are below.`);},700);}
+$("#q").addEventListener("input",searchAndAnnounce);
 $("nav.tabs").addEventListener("keydown",e=>{
   const tabs=[...document.querySelectorAll("nav.tabs [role=tab]")],cur=tabs.indexOf(document.activeElement);if(cur<0)return;
   const to={ArrowRight:(cur+1)%tabs.length,ArrowLeft:(cur-1+tabs.length)%tabs.length,Home:0,End:tabs.length-1}[e.key];if(to===undefined)return;
   e.preventDefault();S.tab=tabs[to].dataset.tab;save();render();tabs[to].focus();
 });
-$("#q").addEventListener("keydown",e=>{if(e.key==="Escape"){e.target.value="";renderSearch();}if(e.key==="Enter"){e.preventDefault();renderSearch();}});
+$("#q").addEventListener("keydown",e=>{if(e.key==="Escape"){e.target.value="";renderSearch();}if(e.key==="Enter"){e.preventDefault();searchAndAnnounce();}});
 document.addEventListener("change",e=>{
   const t=e.target;
   if(t.dataset&&t.dataset.got){const id=t.dataset.got;if(t.checked)S.got[id]=true;else delete S.got[id];save();render();}
@@ -894,7 +960,7 @@ document.addEventListener("change",e=>{
 });
 function startEdit(btn){
   const id=btn.dataset.edit,i=+btn.dataset.si,td=btn.parentElement,cur=price(id,i);
-  td.innerHTML=`<input type="number" step="0.01" min="0" inputmode="decimal" id="edit-${id}-${i}" value="${cur==null?"":cur.toFixed(2)}" aria-label="New price" placeholder="0.00">`;
+  td.innerHTML=`<input type="number" step="0.01" min="0" inputmode="decimal" id="edit-${id}-${i}" value="${cur==null?"":cur.toFixed(2)}" aria-label="New price for ${esc(ITEMS[id].n)} at ${STORES[i].name}, in dollars. Press Enter to save, Escape to cancel." placeholder="0.00">`;
   const inp=td.querySelector("input");inp.focus();inp.select();
   let done=false;
   const commit=keep=>{if(done)return;done=true;
@@ -917,7 +983,9 @@ function copyList(){
   const fallback=()=>{const box=$("#copyFallback");if(box){box.innerHTML=`<textarea class="copyfallback" id="copyText" readonly></textarea>`;const ta=$("#copyText");ta.value=txt;ta.focus();ta.select();toast("Select all and copy");}};
   try{navigator.clipboard.writeText(txt).then(()=>toast("List copied"),fallback);}catch(e){fallback();}
 }
-let tt;function toast(m){const el=$("#toast");el.textContent=m;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,1800);}
+// screen-reader announcements go through one persistent live region; the toast is visual only (aria-hidden)
+let srT;function announce(m){const el=$("#srStatus");el.textContent="";clearTimeout(srT);srT=setTimeout(()=>{el.textContent=m;},60);}
+let tt;function toast(m){const el=$("#toast");el.textContent=m;el.hidden=false;announce(m);clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,2600);}
 render();
 })();
 </script>
