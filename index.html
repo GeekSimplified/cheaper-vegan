@@ -71,6 +71,9 @@ section.panel{padding-top:18px}
 details summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--accent)}
 details ul,details ol{margin:6px 0 0;padding-left:18px;font-size:13px}
 
+.planfilter{margin-bottom:12px}
+.planfilter .chip .muted{font-weight:500}
+.planfilter .chip[aria-pressed="true"] .muted{color:inherit;opacity:.75}
 /* List */
 .route{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
 .storegroup{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:14px;overflow:hidden}
@@ -362,15 +365,73 @@ const RECIPES=[
  {id:"chili",n:"Black bean chili over rice",meal:"Dinner",cal:430,pro:16,fib:13,
   why:"Very high fiber. Make a big pot and eat it all week.",
   ing:{black:2,rice:1.5,tomatoes:0.33,onions:1.5,carrots:1,chili:1,cumin:0.5,oil:0.1},
-  steps:["Cook soaked black beans until tender (about 1 hour).","Sauté onion and carrot, add spices, tomatoes and beans; simmer 20 minutes.","Serve over rice."]}
+  steps:["Cook soaked black beans until tender (about 1 hour).","Sauté onion and carrot, add spices, tomatoes and beans; simmer 20 minutes.","Serve over rice."]},
+ // --- more recipes, built from the same staples so live prices cover them ---
+ {id:"pancakes",n:"Banana oat pancakes with peanut butter",meal:"Breakfast",cal:465,pro:10,fib:7,
+  why:"No flour or eggs needed: blended oats and banana hold them together.",
+  ing:{oats:1.4,banana:4.5,pb:0.56,oil:0.1},
+  steps:["Mash a banana and stir in ½ cup oats (blended or crushed fine) and a splash of water.","Fry small pancakes in a lightly oiled pan, 2–3 minutes a side.","Top with warmed peanut butter."]},
+ {id:"pbbanana",n:"Peanut butter banana toast",meal:"Breakfast",cal:360,pro:11,fib:7,
+  why:"Two minutes, no stove, and filling until lunch.",
+  ing:{bread:2,pb:0.56,banana:4.5},
+  steps:["Toast 2 slices of bread.","Spread with 1 tbsp peanut butter and top with sliced banana."]},
+ {id:"hash",n:"Potato & black bean breakfast hash",meal:"Breakfast",cal:290,pro:10,fib:9,
+  why:"A hot savory breakfast from leftover beans and the cheapest potatoes.",
+  ing:{potatoes:6,black:1,onions:1,chili:0.25,oil:0.15},
+  steps:["Dice a potato small and fry in oil 10–12 minutes until crisp.","Add diced onion, cooked black beans and chili powder; cook 3 minutes more."]},
+ {id:"pbnoodles",n:"Peanut noodles with cabbage & carrots",meal:"Lunch or dinner",cal:400,pro:15,fib:8,
+  why:"Tastes like takeout for about 50¢. Good cold for lunch the next day.",
+  ing:{pasta:2,pb:1.1,cabbage:2,carrots:1,garlic:1},
+  steps:["Cook spaghetti; save a little pasta water.","Whisk 2 tbsp peanut butter with minced garlic and hot pasta water into a sauce.","Toss with the noodles and thinly sliced raw cabbage and carrot. Salt to taste."]},
+ {id:"minestrone",n:"Bean & pasta minestrone",meal:"Lunch or dinner",cal:280,pro:12,fib:10,
+  why:"A big pot of vegetables, beans and pasta that gets better the next day.",
+  ing:{pasta:1,pinto:1,tomatoes:0.33,carrots:1.5,onions:1,cabbage:2,garlic:1,oil:0.08},
+  steps:["Soften onion, carrot and garlic in oil.","Add tomatoes, shredded cabbage, cooked beans and 2 cups water per serving; simmer 15 minutes.","Add broken spaghetti and cook 10 minutes more."]},
+ {id:"blacksoup",n:"Smoky black bean soup",meal:"Lunch or dinner",cal:270,pro:13,fib:12,
+  why:"Very high fiber and filling. Mash some beans to thicken it.",
+  ing:{black:2,onions:1.5,carrots:1,garlic:1,cumin:0.5,tomatoes:0.25,oil:0.08},
+  steps:["Cook soaked black beans until soft (about 1 hour).","Sauté onion, carrot, garlic and cumin; add tomatoes, beans and some bean water.","Simmer 15 minutes and mash about a third of the beans."]},
+ {id:"sloppy",n:"Lentil sloppy joes on toast",meal:"Lunch or dinner",cal:370,pro:18,fib:10,
+  why:"Lentils stand in for meat. Kids usually like these.",
+  ing:{lentils:1.5,tomatoes:0.33,onions:1,chili:0.5,bread:2,oil:0.08},
+  steps:["Simmer lentils in water 20 minutes until soft; drain.","Sauté diced onion, add tomatoes, chili powder and lentils; cook until thick.","Spoon over toast."]},
+ {id:"curry",n:"Lentil & potato curry stew",meal:"Lunch or dinner",cal:300,pro:14,fib:9,
+  why:"Warm spices from just cumin and chili powder. Freezes well.",
+  ing:{lentils:1.5,potatoes:4,tomatoes:0.33,onions:1,garlic:1,cumin:0.5,oil:0.1},
+  steps:["Fry onion and garlic in oil with cumin for 1 minute.","Add lentils, diced potato, tomatoes and 1½ cups water per serving.","Simmer 25–30 minutes until the potatoes are soft. Salt to taste."]},
+ {id:"cabbagesoup",n:"Cabbage, potato & pinto soup",meal:"Lunch or dinner",cal:265,pro:11,fib:11,
+  why:"One of the cheapest bowls here, and big portions.",
+  ing:{pinto:1.5,cabbage:4,potatoes:2,carrots:1,onions:1,garlic:1,tomatoes:0.25,cumin:0.25},
+  steps:["Add shredded cabbage, diced potato, carrot, onion and garlic to a pot.","Add tomatoes, cumin, cooked pintos and 2 cups water per serving.","Simmer 25 minutes. Salt and pepper."]},
+ {id:"bowl",n:"Black bean & rice burrito bowl",meal:"Dinner",cal:425,pro:15,fib:11,
+  why:"Everything from a burrito except the tortilla, for less.",
+  ing:{rice:2,black:1.5,mixveg:2,chili:0.5,cumin:0.25,oil:0.1},
+  steps:["Cook rice.","Warm cooked black beans with chili powder and cumin.","Fry frozen mixed vegetables in oil and pile everything in a bowl."]},
+ {id:"dal",n:"Split pea dal over rice",meal:"Dinner",cal:360,pro:14,fib:13,
+  why:"An Indian staple. Split peas cook down creamy with no blender.",
+  ing:{splitpea:1.5,rice:1.5,onions:1,garlic:1,cumin:0.5,tomatoes:0.25,oil:0.1},
+  steps:["Simmer split peas in 3 parts water 40–50 minutes until soft and thick.","Fry onion, garlic and cumin in oil; stir in tomatoes, then into the peas.","Serve over rice."]},
+ {id:"vegnoodles",n:"Garlic veggie noodles",meal:"Dinner",cal:300,pro:10,fib:7,
+  why:"A quick dinner when there are no cooked beans in the fridge.",
+  ing:{pasta:2,mixveg:3,cabbage:2,garlic:1,oil:0.15},
+  steps:["Cook spaghetti.","Fry garlic in oil, add frozen mixed vegetables and shredded cabbage; cook 5 minutes.","Toss in the noodles with salt and a splash of pasta water."]},
+ {id:"carrotpb",n:"Carrot sticks with peanut butter",meal:"Snack",cal:130,pro:4,fib:3,
+  why:"Crunchy, cheap, and a little vitamin A.",
+  ing:{carrots:3,pb:0.56},
+  steps:["Cut carrots into sticks and dip in 1 tbsp peanut butter."]},
+ {id:"bites",n:"Peanut butter oat energy bites",meal:"Snack",cal:215,pro:6,fib:4,
+  why:"Make a batch on Sunday for grab-and-go snacks all week.",
+  ing:{oats:0.7,pb:0.56,banana:2},
+  steps:["Mash banana with peanut butter, then stir in oats.","Roll into balls and chill for 30 minutes. Keeps 5 days in the fridge."]}
 ];
+const slotOf=r=>/Breakfast/.test(r.meal)?"b":/Snack/.test(r.meal)?"s":"m";
 const DEFAULT_PLAN={ptoast:7,oats:7,mujadara:4,pbs:5,pinto:6,splitpea:3,friedrice:2,baked:2,lentil:0,skillet:0,pasta:0,chili:2};
 
 const PV=2; // bump when the recipe set changes so old saved plans don't point at removed meals
 let S={pv:PV,plan:{...DEFAULT_PLAN},people:1,stores:{aldi:true,walmart:true,target:true,cub:true,hyvee:true},have:{},got:{},prices:{},route:"mix",tab:"plan",theme:{bg:"black",accent:"green"},extra:{}};
 const LS="cheaper-cart-v1";
 try{const raw=localStorage.getItem(LS);if(raw)merge(JSON.parse(raw));}catch(e){}
-function merge(d){if(!d||typeof d!=="object")return;const keys=["people","stores","have","got","prices","route","tab","theme","extra","live","liveAt"];if(d.pv===PV)keys.push("plan");else S.got={};for(const k of keys)if(d[k]!==undefined)S[k]=JSON.parse(JSON.stringify(d[k]));S.pv=PV;for(const st of STORES)if(S.stores[st.id]===undefined)S.stores[st.id]=true;}
+function merge(d){if(!d||typeof d!=="object")return;const keys=["people","stores","have","got","prices","route","tab","theme","extra","live","liveAt","pf"];if(d.pv===PV)keys.push("plan");else S.got={};for(const k of keys)if(d[k]!==undefined)S[k]=JSON.parse(JSON.stringify(d[k]));S.pv=PV;for(const st of STORES)if(S.stores[st.id]===undefined)S.stores[st.id]=true;}
 
 // ---- persistence (private per-viewer db doc, falls back to this browser) ----
 let docRef=null,saveTimer=null,saving=Promise.resolve();
@@ -486,10 +547,45 @@ function render(){
 }
 function routeLabel(){if(S.route==="mix")return "cheapest mix of "+enabledIdx().map(i=>STORES[i].name).join(", ");return STORES[+S.route].name+" only";}
 
+// ---- shuffle: build a random week (7 breakfasts, 14 lunches/dinners, 7 snacks per person), favoring cheap meals that share ingredients ----
+let PREV_PLAN=null;
+function shufflePlan(){
+  PREV_PLAN={...S.plan};
+  const cost=r=>Math.max(0.05,servingCost(r));
+  const used=new Set();
+  const pick=(slot,k)=>{
+    const pool=RECIPES.filter(r=>slotOf(r)===slot),chosen=[];
+    while(chosen.length<Math.min(k,pool.length)){
+      let best=null,bw=-1;
+      for(const r of pool){if(chosen.includes(r))continue;
+        const keys=Object.keys(r.ing),shared=keys.filter(x=>used.has(x)).length/keys.length;
+        const w=(1/Math.pow(cost(r),0.8))*(1+0.6*shared)*(0.15+Math.random()*1.7);
+        if(w>bw){bw=w;best=r;}}
+      chosen.push(best);Object.keys(best.ing).forEach(x=>used.add(x));
+    }
+    return chosen;
+  };
+  const split=(list,n)=>{const base=Math.floor(n/list.length);let rest=n-base*list.length;const out=list.map(()=>base);while(rest-->0)out[Math.floor(Math.random()*out.length)]++;return out;};
+  const plan={};RECIPES.forEach(r=>plan[r.id]=0);
+  const groups=[[pick("b",2),7],[pick("m",5),14],[pick("s",2),7]];
+  for(const [list,n] of groups)split(list,n).forEach((c,i)=>plan[list[i].id]=c);
+  // top up calories (~1,850/day) by adding servings round-robin across the chosen meals, cheapest calories first,
+  // so no single snack piles up: snacks capped at 10 a week, any one recipe at 7
+  const cal=()=>RECIPES.reduce((s,r)=>s+r.cal*plan[r.id],0)/7;
+  const snackTotal=()=>RECIPES.filter(r=>slotOf(r)==="s").reduce((s,r)=>s+plan[r.id],0);
+  const chosen=groups.flatMap(([l])=>l).sort((a,b)=>cost(a)/a.cal-cost(b)/b.cal);
+  for(let g=0;cal()<1850&&g<10;g++)for(const r of chosen){if(cal()>=1850)break;if(plan[r.id]>=7||(slotOf(r)==="s"&&snackTotal()>=10))continue;plan[r.id]++;}
+  S.plan=plan;save();render();
+  const used$=RECIPES.reduce((s,r)=>s+servingCost(r)*plan[r.id],0)/7;
+  toast(`New week: ${groups.reduce((s,[l])=>s+l.length,0)} different meals, about ${money(used$)} a day`);
+}
+const PLAN_FILTERS=[["all","All meals"],["b","Breakfast"],["m","Lunch & dinner"],["s","Snacks"]];
 function renderPlan(){
-  const meals=RECIPES.reduce((s,r)=>s+(S.plan[r.id]||0),0);
-  $("#panel-plan").innerHTML=`<div class="route"><p class="muted small" style="margin:0">Cheapest meals first. Set how many servings of each you'll eat this week${S.people>1?" (per person)":""}. ${meals} servings planned.</p><div class="btns"><button type="button" class="btn ghost" id="resetPlan">Reset to sample week</button></div></div><div class="recipes">`+
-  RECIPES.map(r=>({r,c:servingCost(r)})).sort((a,b)=>a.c-b.c).map(({r,c})=>{const n=S.plan[r.id]||0;return `<article class="rc${n?" on":""}">
+  const meals=RECIPES.reduce((s,r)=>s+(S.plan[r.id]||0),0),pf=S.pf||"all";
+  $("#panel-plan").innerHTML=`<div class="route"><p class="muted small" style="margin:0">Cheapest meals first. Set how many servings of each you'll eat this week${S.people>1?" (per person)":""}, or shuffle for a new week. ${meals} servings planned.</p><div class="btns"><button type="button" class="btn" id="shufflePlan">Shuffle my week</button>${PREV_PLAN?`<button type="button" class="btn ghost" id="undoPlan">Undo shuffle</button>`:""}<button type="button" class="btn ghost" id="resetPlan">Reset to sample week</button></div></div>
+  <div class="chips planfilter">${PLAN_FILTERS.map(([k,l])=>`<button type="button" class="chip" data-pf="${k}" aria-pressed="${pf===k}">${l} <span class="muted">${k==="all"?RECIPES.length:RECIPES.filter(r=>slotOf(r)===k).length}</span></button>`).join("")}</div>
+  <div class="recipes">`+
+  RECIPES.filter(r=>pf==="all"||slotOf(r)===pf).map(r=>({r,c:servingCost(r)})).sort((a,b)=>a.c-b.c).map(({r,c})=>{const n=S.plan[r.id]||0;return `<article class="rc${n?" on":""}">
     <div><div class="meal">${r.meal}</div><h3>${r.n}</h3></div>
     <div class="facts"><div><b>${money(c)}</b><span>per serving</span></div><div><b>${r.cal}</b><span>calories</span></div><div><b>${r.pro} g</b><span>protein</span></div><div><b>${r.fib} g</b><span>fiber</span></div></div>
     <p class="why">${r.why}</p>
@@ -723,7 +819,10 @@ document.addEventListener("click",e=>{
   if(t.dataset.have){const id=t.dataset.have;if(S.have[id])delete S.have[id];else S.have[id]=true;save();render();return;}
   if(t.dataset.edit){startEdit(t);return;}
   if(t.id==="pplMinus"||t.id==="pplPlus"){S.people=Math.max(1,Math.min(8,S.people+(t.id==="pplPlus"?1:-1)));save();render();return;}
-  if(t.id==="resetPlan"){S.plan={...DEFAULT_PLAN};save();render();toast("Sample week restored");return;}
+  if(t.id==="resetPlan"){PREV_PLAN={...S.plan};S.plan={...DEFAULT_PLAN};save();render();toast("Sample week restored");return;}
+  if(t.id==="shufflePlan"){shufflePlan();return;}
+  if(t.id==="undoPlan"){if(PREV_PLAN){S.plan=PREV_PLAN;PREV_PLAN=null;save();render();toast("Previous week restored");}return;}
+  if(t.dataset.pf){S.pf=t.dataset.pf;save();render();return;}
   if(t.id==="resetPrices"){if(t.dataset.confirm){S.prices={};save();render();toast("Prices reset to estimates");}else{t.dataset.confirm="1";t.textContent="Tap again to reset all your prices";}return;}
   if(t.id==="clearGot"){S.got={};save();render();return;}
   if(t.id==="copyList"){copyList();return;}
