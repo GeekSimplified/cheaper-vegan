@@ -332,7 +332,12 @@ const EXTRA={
  popcorn:{n:"Popcorn kernels",pkg:"30 oz jar",size:30,u:"oz",cat:"Grains",p:[1.99,2.28,2.49,2.99],k:"snack"},
  soymilk:{n:"Soy milk, fortified",pkg:"half gallon",size:64,u:"fl oz",cat:"Dairy aisle",p:[2.69,2.62,2.99,3.49],k:"milk plant dairy free"},
  oatmilk:{n:"Oat milk",pkg:"half gallon",size:64,u:"fl oz",cat:"Dairy aisle",p:[2.99,2.98,3.39,3.99],k:"milk plant dairy free"},
- tofu:{n:"Firm tofu",pkg:"14 oz block",size:14,u:"oz",cat:"Beans & protein",p:[1.79,1.92,1.99,2.49],k:"soy protein"},
+ // tofu kinds: prices [Aldi, Walmart, Target, Cub, Hy-Vee] from store websites, Nov 2026 (Target estimated); null = not sold online there
+ tofu:{n:"Firm tofu",pkg:"14 oz block",size:14,u:"oz",cat:"Beans & protein",p:[null,1.99,1.99,3.79,2.62],k:"soy protein stir fry"},
+ tofuxf:{n:"Extra-firm tofu",pkg:"14 oz block",size:14,u:"oz",cat:"Beans & protein",p:[1.65,2.97,2.29,2.84,2.62],k:"soy protein extra firm baked crispy"},
+ tofusuper:{n:"Super-firm high-protein tofu",pkg:"16 oz block",size:16,u:"oz",cat:"Beans & protein",p:[null,3.53,3.49,4.99,7.98],k:"soy protein super firm no press"},
+ tofusilk:{n:"Silken tofu",pkg:"16 oz package",size:16,u:"oz",cat:"Beans & protein",p:[null,null,2.49,4.49,null],k:"soy soft smoothie dessert sauce"},
+ tofusoft:{n:"Soft (regular) tofu",pkg:"14 oz block",size:14,u:"oz",cat:"Beans & protein",p:[null,null,null,3.79,null],k:"soy regular soup"},
  flax:{n:"Ground flaxseed",pkg:"16 oz bag",size:16,u:"oz",cat:"Beans & protein",p:[3.49,3.48,3.99,4.99],k:"seeds omega"},
  spinach:{n:"Frozen chopped spinach",pkg:"12 oz bag",size:12,u:"oz",cat:"Frozen",p:[1.15,1.24,1.39,1.79],k:"greens"},
  broccoli:{n:"Frozen broccoli",pkg:"12 oz bag",size:12,u:"oz",cat:"Frozen",p:[1.29,1.24,1.49,1.99]},
@@ -568,7 +573,7 @@ function buy(n,i){const p=price(n.id,i);if(p==null)return null;const it=ITEMS[n.
   if(L){const q=Math.max(1,Math.ceil(n.amt/(it.size*L.pk)-1e-9));return {cost:q*L.raw,label:q+" × "+L.prod,live:true};}
   return {cost:p*n.pk,label:n.pk+" × "+it.pkg,live:false};}
 const ITEM_Q={oats:"old fashioned oats",rice:"brown rice",pasta:"whole wheat spaghetti",bread:"whole wheat bread",lentils:"dry lentils",pinto:"dry pinto beans",black:"dry black beans",splitpea:"dry split peas",pb:"creamy peanut butter",banana:"bananas",carrots:"carrots 2 lb bag",onions:"yellow onions 3 lb bag",garlic:"garlic",potatoes:"russet potatoes 5 lb",cabbage:"green cabbage",mixveg:"frozen mixed vegetables",tomatoes:"canned diced tomatoes",oil:"vegetable oil",chili:"chili powder",cumin:"ground cumin"};
-Object.assign(ITEM_Q,{ctort:"corn tortillas",soysauce:"soy sauce",tofu:"firm tofu",cchick:"canned chickpeas"});
+Object.assign(ITEM_Q,{ctort:"corn tortillas",soysauce:"soy sauce",tofu:"firm tofu",cchick:"canned chickpeas",tofuxf:"extra firm tofu",tofusuper:"super firm tofu",tofusilk:"silken tofu",tofusoft:"soft tofu"});
 const itemQuery=id=>ITEM_Q[id]||ITEMS[id].n.toLowerCase().replace(/\(.*?\)/g,"").trim();
 function cheapest(id,idxs){let best=-1,bp=Infinity;for(const i of idxs){const p=price(id,i);if(p!=null&&p<bp){bp=p;best=i;}}return best<0?null:{i:best,p:bp};}
 function needs(){
