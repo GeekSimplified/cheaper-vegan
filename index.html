@@ -584,6 +584,17 @@ const RECIPES=[
 const CUISINES=[["all","Any cuisine"],["mx","Mexican"],["cn","Chinese"],["as","Other Asian"]];
 Object.entries({pinto:"mx",chili:"mx",bowl:"mx",friedrice:"cn",pbnoodles:"cn",vegnoodles:"cn",dal:"as",curry:"as"}).forEach(([id,c])=>{const r=RECIPES.find(x=>x.id===id);if(r)r.cui=c;});
 const slotOf=r=>/Breakfast/.test(r.meal)?"b":/Snack/.test(r.meal)?"s":"m";
+// Title Case for recipe names ("Peanut Butter Toast"): small joining words stay lowercase unless first; hyphenated parts and
+// words in parentheses are capitalized too ("Mapo-Style", "(Tacos de Papa)"); all-caps words like "PB" are kept.
+const SMALL_WORDS=new Set(["a","an","and","&","or","with","on","over","of","in","the","to","for","de"]);
+function titleCase(s){
+  return s.split(" ").map((w,i)=>{
+    const lead=(w.match(/^[(]*/)||[""])[0],core=w.slice(lead.length);
+    if(i>0&&SMALL_WORDS.has(core.toLowerCase()))return lead+core.toLowerCase();
+    return lead+core.split("-").map(p=>p===p.toUpperCase()?p:p.charAt(0).toUpperCase()+p.slice(1)).join("-");
+  }).join(" ");
+}
+RECIPES.forEach(r=>{r.n=titleCase(r.n);});
 const DEFAULT_PLAN={ptoast:7,oats:7,mujadara:4,pbs:5,pinto:6,splitpea:3,friedrice:2,baked:2,lentil:0,skillet:0,pasta:0,chili:2};
 
 const PV=2; // bump when the recipe set changes so old saved plans don't point at removed meals
