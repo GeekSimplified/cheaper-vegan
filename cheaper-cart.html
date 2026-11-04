@@ -127,6 +127,26 @@ td.p input{width:72px;text-align:right;font-family:var(--mono);padding:3px 4px;b
 .sp .u{display:block;font-size:10px;color:var(--muted);font-family:var(--mono)}
 .sp input{width:100%;text-align:center;font-family:var(--mono);padding:3px;border:1px solid var(--accent);border-radius:4px;background:var(--surface)}
 .sverdict{margin:0}
+/* search result price list: one row per store */
+.ptable{width:100%;min-width:0;border-collapse:collapse;font-size:16px;font-variant-numeric:tabular-nums}
+.ptable thead th{background:none;position:static;font-family:var(--body);font-stretch:100%;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:0 8px 6px;border-bottom:2px solid var(--line)}
+.ptable th,.ptable td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+.ptable tbody tr:last-child th,.ptable tbody tr:last-child td{border-bottom:0}
+.ptable tbody th{font-weight:700;font-family:var(--body)}
+.ptable td.pc,.ptable td.uc,.ptable thead th:nth-child(n+2){text-align:right;white-space:nowrap}
+.ptable td.uc{font-family:var(--mono);font-size:15px;color:var(--muted)}
+.ptable td.pc button{background:none;border:2px solid transparent;border-radius:6px;padding:3px 8px;cursor:pointer;font-family:var(--mono);font-size:17px;font-weight:700;color:var(--fg)}
+.ptable td.pc button:hover{border-color:var(--line)}
+.ptable tr.low td.pc button{background:var(--tag);color:var(--tag-fg)}
+.ptable tr.low th,.ptable tr.low td{background:var(--sunk)}
+.ptable tr.na td.pc button{font-family:var(--body);font-size:15px;font-weight:600;color:var(--muted)}
+.ptable tr.off th,.ptable tr.off td{color:var(--muted)}
+.ptable .best{display:inline-block;margin-left:6px;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--tag-fg);background:var(--tag);border-radius:999px;padding:1px 8px;vertical-align:middle}
+.ptable .offtag{display:inline-block;margin-left:6px;font-size:12px;font-weight:700;border:2px dashed var(--line);border-radius:999px;padding:0 8px}
+.ptable .livetag,.ptable .livefail{margin-left:6px;vertical-align:middle}
+.ptable td.pc input{width:90px;text-align:right;font-family:var(--mono);font-size:16px;padding:4px 6px;border:2px solid var(--accent);border-radius:6px;background:var(--surface);color:var(--fg)}
+.scard{gap:14px;padding:16px 18px}
+.sres{grid-template-columns:repeat(auto-fill,minmax(min(100%,360px),1fr));gap:14px}
 .slive{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .slive .btn{padding:6px 12px;font-size:13px}
 .sempty{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:6px}
@@ -749,6 +769,8 @@ function renderCompare(list){
   $("#panel-compare").innerHTML=h;
 }
 function liveMark(id,i){if(isLive(id,i)){const L=liveCell(id,i);return `<span class="livetag" title="${esc(L.prod)} — ${money(L.raw)}">live<span class="sr"> price: ${esc(L.prod)}, ${money(L.raw)}</span></span>`;}const f=LIVE_FAIL[id+":"+i];return f?`<span class="livefail" title="${esc(f)}">not found<span class="sr">: ${esc(f)}</span></span>`:"";}
+// friendlier unit price for search results: "11.8¢" or "$1.42" (the column header names the unit)
+function perUnit(p,it){const v=p/it.size;return v<1?(Math.round(v*1000)/10).toFixed(1)+"¢":"$"+v.toFixed(2);}
 function unitPrice(p,it){const v=p/it.size;return (v<0.1?"$"+v.toFixed(3):"$"+v.toFixed(2))+"/"+it.u.replace("fl oz","fl oz");}
 
 // ---- search ----
@@ -777,7 +799,14 @@ function renderSearch(){
     const hi=onPs.length?Math.max(...onPs.map(x=>x.p)):0,n=S.extra[id]||0;
     return `<article class="scard"><div class="shead"><div style="min-width:0"><h3>${it.n}</h3><div class="small muted">${it.pkg} · ${it.cat}${inPlan.has(id)?" · in your meal plan":""}</div></div>
       <div class="sadd">${n?`<div class="stepper"><button type="button" data-extra="${id}" data-d="-1" aria-label="One fewer ${it.n}">−</button><span class="n">${n}</span><button type="button" data-extra="${id}" data-d="1" aria-label="One more ${it.n}">+</button></div><span class="small muted">on list</span>`:`<button type="button" class="btn" data-extra="${id}" data-d="1">Add to list</button>`}</div></div>
-      <div class="sprices">${prices.map(({i,p})=>{const on=S.stores[STORES[i].id];return `<div class="sp${!on?" off":""}"><span class="sn">${STORES[i].name}</span><div class="p${b&&b.i===i?" low":""}${p==null?" na":""}"><button type="button" data-edit="${id}" data-si="${i}" aria-label="${editLbl(id,i,p)}">${p==null?"not carried":money(p)+(isEdited(id,i)?'<span class="edited" aria-hidden="true"> •</span>':"")}</button>${p!=null?`<span class="u">${unitPrice(p,it)}</span>`:""}${liveMark(id,i)}</div></div>`}).join("")}</div>
+      <table class="ptable"><caption class="sr">${esc(it.n)} prices by store, cheapest first</caption>
+        <thead><tr><th scope="col">Store</th><th scope="col">Price</th><th scope="col">Per ${it.u}</th></tr></thead>
+        <tbody>${prices.slice().sort((x,y)=>{const ox=S.stores[STORES[x.i].id]?0:2,oy=S.stores[STORES[y.i].id]?0:2;return (ox+(x.p==null?1:0))-(oy+(y.p==null?1:0))||(x.p||0)-(y.p||0);}).map(({i,p})=>{
+          const on=S.stores[STORES[i].id],low=b&&b.i===i;
+          return `<tr class="${low?"low":""}${!on?" off":""}${p==null?" na":""}">
+            <th scope="row">${STORES[i].name}${low?' <span class="best">Cheapest</span>':""}${!on?' <span class="offtag">off</span>':""}</th>
+            <td class="pc"><button type="button" data-edit="${id}" data-si="${i}" aria-label="${editLbl(id,i,p)}">${p==null?"Not sold online":money(p)+(isEdited(id,i)?'<span class="edited" aria-hidden="true"> •</span>':"")}</button>${liveMark(id,i)}</td>
+            <td class="uc">${p!=null?perUnit(p,it):'<span aria-hidden="true">—</span><span class="sr">none</span>'}</td></tr>`}).join("")}</tbody></table>
       ${b?`<p class="small sverdict">Cheapest at <b>${STORES[b.i].name}</b>${hi>b.p?`, saving ${money(hi-b.p)} over the priciest of your stores`:""}.${isLive(id,b.i)?` Buy: ${esc(liveCell(id,b.i).prod)}.`:""}</p>`:`<p class="small muted sverdict">Not carried at the stores you have turned on.</p>`}
       ${liveOK?`<div class="slive">${liveFor===id?`<span class="small">Checking ${idx.length} store websites…</span>`:`<button type="button" class="btn ghost" data-livecheck="${id}"${liveCtl?" disabled":""}>Check live prices</button><span class="small muted">${idx.length} stores, about ${Math.max(1,Math.round(idx.length*7/60*2)/2)} min</span>`}</div>`:""}
     </article>`}).join("")+`</div>`+links;
