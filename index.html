@@ -586,7 +586,7 @@ function browserStop(e){
   const c=e&&e.code;
   if(c==="server_not_connected"||c==="not_granted"||c==="capability_disabled"||c==="capability_removed")return "Live prices only work when Cheaper Cart is open in the Claude desktop app.";
   if(c==="not_in_manifest"||c==="approval_required"||c==="consent_required")return "Browser access wasn't allowed. Click Get live prices again and choose Allow.";
-  if(c==="cancelled")return "The browser step was declined.";
+  if(c==="cancelled")return "The Claude app asked to let Cheaper Cart open store pages in its browser, and that request was declined or closed. Click the button again and choose Allow when the app asks (pick an “always allow” option if one is offered).";
   if(c==="blocked_by_policy")return "Your organization doesn't allow this page to use the browser.";
   return null; // tool_error, upstream_error, server_unavailable: skip this one lookup
 }
