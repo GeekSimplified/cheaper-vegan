@@ -4,18 +4,13 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..900&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
 /* Layout: a summary "receipt strip" up top, then three working tabs (plan → list → compare). Shelf-tag yellow marks the cheapest price. */
+/* Default look: black background, white text. The in-app Theme menu swaps these tokens (see THEMES in the script). */
 :root{
-  --bg:#f3f6f1; --surface:#ffffff; --sunk:#e8eee5; --fg:#1b2a1f; --muted:#5b6b5f; --line:#d3ddd0;
-  --accent:#1f6b3a; --accent-fg:#ffffff; --tag:#ffd84a; --tag-fg:#2a2300; --warn:#a24a14; --warn-bg:#fbe9dc;
+  --bg:#000000; --surface:#121212; --sunk:#1c1c1c; --fg:#ffffff; --muted:#b4b4b4; --line:#333333;
+  --accent:#5fcf86; --accent-fg:#000000; --tag:#ffd84a; --tag-fg:#2a2300; --warn:#ff9b6a; --warn-bg:#3a1f12;
   --display:"Archivo","Arial Narrow",Arial,sans-serif; --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
-  color-scheme:light;
+  color-scheme:dark;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#111813; --surface:#18221b; --sunk:#0d130f; --fg:#e4ede5; --muted:#9db0a1; --line:#2b3a2f;
-  --accent:#5fcf86; --accent-fg:#08210f; --tag:#ffd84a; --tag-fg:#2a2300; --warn:#f0a070; --warn-bg:#3a2316; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#111813; --surface:#18221b; --sunk:#0d130f; --fg:#e4ede5; --muted:#9db0a1; --line:#2b3a2f;
-  --accent:#5fcf86; --accent-fg:#08210f; --tag:#ffd84a; --tag-fg:#2a2300; --warn:#f0a070; --warn-bg:#3a2316; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
 .wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
@@ -106,6 +101,16 @@ td.p input{width:72px;text-align:right;font-family:var(--mono);padding:3px 4px;b
 .edited{color:var(--accent);font-weight:700}
 .note{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13px;margin-top:14px}
 .note ul{margin:6px 0 0;padding-left:18px}
+.theme{position:relative}
+.theme summary{list-style:none;cursor:pointer;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:700;font-size:13px;color:var(--fg);display:flex;align-items:center;gap:8px}
+.theme summary::-webkit-details-marker{display:none}
+.theme summary .dot{width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid var(--fg)}
+.theme .menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;width:min(280px,calc(100vw - 32px));display:grid;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.swatches{display:flex;flex-wrap:wrap;gap:8px}
+.sw{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
+.sw[aria-pressed="true"]{border-color:var(--fg);box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--fg)}
+.bgopt{border:2px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px;font-weight:600}
+.bgopt[aria-pressed="true"]{border-color:var(--accent)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:8px;font-weight:600;font-size:14px}
 textarea.copyfallback{width:100%;min-height:160px;margin-top:10px;font-family:var(--mono);font-size:12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px}
 @media (prefers-reduced-motion:no-preference){.rc,.chip,.btn{transition:border-color .15s,background .15s}}
@@ -117,6 +122,15 @@ textarea.copyfallback{width:100%;min-height:160px;margin-top:10px;font-family:va
       <h1>Cheaper Cart</h1>
       <p class="lede">Pick rock-bottom-cost, high-nutrition vegan meals for the week, most under 50¢ a serving. The app builds your shopping list and finds the cheapest store for each item across Aldi, Walmart, Target and Cub Foods.</p>
     </div>
+    <details class="theme" id="themeMenu">
+      <summary><span class="dot" aria-hidden="true"></span>Theme</summary>
+      <div class="menu">
+        <span class="lbl">Background</span>
+        <div class="swatches" id="bgOpts"></div>
+        <span class="lbl">Accent color</span>
+        <div class="swatches" id="accentOpts"></div>
+      </div>
+    </details>
   </header>
 
   <div class="strip" id="strip"></div>
@@ -237,10 +251,10 @@ const RECIPES=[
 const DEFAULT_PLAN={ptoast:7,oats:7,mujadara:4,pbs:5,pinto:6,splitpea:3,friedrice:2,baked:2,lentil:0,skillet:0,pasta:0,chili:2};
 
 const PV=2; // bump when the recipe set changes so old saved plans don't point at removed meals
-let S={pv:PV,plan:{...DEFAULT_PLAN},people:1,stores:{aldi:true,walmart:true,target:true,cub:true},have:{},got:{},prices:{},route:"mix",tab:"plan"};
+let S={pv:PV,plan:{...DEFAULT_PLAN},people:1,stores:{aldi:true,walmart:true,target:true,cub:true},have:{},got:{},prices:{},route:"mix",tab:"plan",theme:{bg:"black",accent:"green"}};
 const LS="cheaper-cart-v1";
 try{const raw=localStorage.getItem(LS);if(raw)merge(JSON.parse(raw));}catch(e){}
-function merge(d){if(!d||typeof d!=="object")return;const keys=["people","stores","have","got","prices","route","tab"];if(d.pv===PV)keys.push("plan");else S.got={};for(const k of keys)if(d[k]!==undefined)S[k]=JSON.parse(JSON.stringify(d[k]));S.pv=PV;}
+function merge(d){if(!d||typeof d!=="object")return;const keys=["people","stores","have","got","prices","route","tab","theme"];if(d.pv===PV)keys.push("plan");else S.got={};for(const k of keys)if(d[k]!==undefined)S[k]=JSON.parse(JSON.stringify(d[k]));S.pv=PV;}
 
 // ---- persistence (private per-viewer db doc, falls back to this browser) ----
 let docRef=null,saveTimer=null,saving=Promise.resolve();
@@ -293,7 +307,27 @@ function routeOptions(){const o=[{v:"mix",label:"Cheapest mix"}];for(const i of 
 function validRoute(){const o=routeOptions().map(x=>x.v);if(!o.includes(S.route))S.route="mix";return S.route;}
 
 // ---- render ----
+// ---- theme ----
+const THEMES={
+  black:{label:"Black",dark:true,v:{bg:"#000000",surface:"#121212",sunk:"#1c1c1c",fg:"#ffffff",muted:"#b4b4b4",line:"#333333",warn:"#ff9b6a","warn-bg":"#3a1f12"}},
+  charcoal:{label:"Charcoal",dark:true,v:{bg:"#1b1e22",surface:"#252a30",sunk:"#15181b",fg:"#f4f4f4",muted:"#aab2bb",line:"#3a414a",warn:"#ff9b6a","warn-bg":"#3a2418"}},
+  navy:{label:"Navy",dark:true,v:{bg:"#0b1424",surface:"#13203a",sunk:"#08101d",fg:"#f2f6ff",muted:"#a4b3cc",line:"#263756",warn:"#ff9b6a","warn-bg":"#3a2418"}},
+  light:{label:"Light",dark:false,v:{bg:"#f3f6f1",surface:"#ffffff",sunk:"#e8eee5",fg:"#1b2a1f",muted:"#5b6b5f",line:"#d3ddd0",warn:"#a24a14","warn-bg":"#fbe9dc"}}
+};
+// each accent: [bright for dark backgrounds, deep for light backgrounds]
+const ACCENTS={green:["#5fcf86","#1f6b3a"],blue:["#6cb4ff","#1f5fae"],orange:["#ffa45c","#a8500f"],pink:["#ff7ab8","#a8236a"],purple:["#b89cff","#5b3fb0"],yellow:["#ffd84a","#7a5d00"],mono:["#ffffff","#1b1b1b"]};
+function applyTheme(){
+  const th=THEMES[S.theme&&S.theme.bg]||THEMES.black,ac=ACCENTS[S.theme&&S.theme.accent]||ACCENTS.green,st=document.documentElement.style;
+  for(const [k,v] of Object.entries(th.v))st.setProperty("--"+k,v);
+  st.setProperty("--accent",th.dark?ac[0]:ac[1]);
+  st.setProperty("--accent-fg",th.dark?"#000000":"#ffffff");
+  st.setProperty("color-scheme",th.dark?"dark":"light");
+  const cur=S.theme||{};
+  $("#bgOpts").innerHTML=Object.entries(THEMES).map(([k,t])=>`<button type="button" class="bgopt" data-bg="${k}" aria-pressed="${(cur.bg||"black")===k}" style="background:${t.v.bg};color:${t.v.fg}">${t.label}</button>`).join("");
+  $("#accentOpts").innerHTML=Object.entries(ACCENTS).map(([k,a])=>`<button type="button" class="sw" data-accent="${k}" aria-pressed="${(cur.accent||"green")===k}" aria-label="${k} accent" title="${k}" style="background:${th.dark?a[0]:a[1]}"></button>`).join("");
+}
 function render(){
+  applyTheme();
   const list=needs();validRoute();
   const rows=assign(S.route,list),wk=total(rows);
   // weekly nutrition
@@ -370,6 +404,8 @@ function unitPrice(p,it){const v=p/it.size;return (v<0.1?"$"+v.toFixed(3):"$"+v.
 // ---- events ----
 document.addEventListener("click",e=>{
   const t=e.target.closest("button");if(!t)return;
+  if(t.dataset.bg){S.theme={...S.theme,bg:t.dataset.bg};save();render();return;}
+  if(t.dataset.accent){S.theme={...S.theme,accent:t.dataset.accent};save();render();return;}
   if(t.dataset.tab){S.tab=t.dataset.tab;save();render();return;}
   if(t.dataset.store){const id=t.dataset.store;S.stores[id]=!S.stores[id];save();render();return;}
   if(t.dataset.step){const id=t.dataset.step;S.plan[id]=Math.max(0,Math.min(21,(S.plan[id]||0)+ +t.dataset.d));save();render();return;}
