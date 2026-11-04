@@ -65,6 +65,21 @@ details summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--accent
 details ul,details ol{margin:6px 0 0;padding-left:18px;font-size:13px}
 
 .planfilter{margin-bottom:10px}
+/* Pantry */
+.pantrysum{margin-top:14px}
+.pgroup{margin-bottom:22px}
+.plist{list-style:none;margin:0;padding:0;background:var(--surface);border:2px solid var(--line);border-radius:12px;overflow:hidden}
+.pi{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:12px;align-items:start;padding:12px 16px;border-top:1px solid var(--line)}
+.pi:first-child{border-top:0}
+.pi input[type=checkbox]{width:24px;height:24px;margin-top:2px;accent-color:var(--accent)}
+.pi .pname{font-weight:700;font-size:17px;display:block;cursor:pointer}
+.pi.got .pname{color:var(--muted)}
+.pi .pside{text-align:right;min-width:96px}
+.pi .pside .num{font-weight:700;font-size:17px}
+.pi .core{display:inline-block;margin-left:6px;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;border:2px solid var(--accent);color:var(--accent);border-radius:999px;padding:0 8px;vertical-align:middle}
+.pi .onlist{color:var(--accent);font-weight:700}
+.pi.info .picon{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-weight:900;background:var(--tag);color:var(--tag-fg)}
+@media (max-width:480px){.pi{grid-template-columns:28px minmax(0,1fr)}.pi .pside{grid-column:2;text-align:left}}
 .rhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 /* card header: room between the category badges and the title; title set wider and looser so words don't crowd */
 .rc .meal{margin-bottom:12px;gap:8px;line-height:1.4}
@@ -296,11 +311,13 @@ td.p.na{font-size:13px}
     <button type="button" role="tab" id="tab-plan" data-tab="plan" aria-controls="panel-plan">1 · Plan meals</button>
     <button type="button" role="tab" id="tab-list" data-tab="list" aria-controls="panel-list">2 · Shopping list</button>
     <button type="button" role="tab" id="tab-compare" data-tab="compare" aria-controls="panel-compare">3 · Compare prices</button>
+    <button type="button" role="tab" id="tab-pantry" data-tab="pantry" aria-controls="panel-pantry">4 · Pantry</button>
   </nav>
 
   <section class="panel" id="panel-plan" role="tabpanel" aria-labelledby="tab-plan"></section>
   <section class="panel" id="panel-list" role="tabpanel" aria-labelledby="tab-list" hidden></section>
   <section class="panel" id="panel-compare" role="tabpanel" aria-labelledby="tab-compare" hidden></section>
+  <section class="panel" id="panel-pantry" role="tabpanel" aria-labelledby="tab-pantry" hidden></section>
 
   <div class="note">
     <b>About these prices.</b> Prices marked <span class="livetag">live</span> were read from the store's website by <b>Get live prices</b>. All others are estimates of typical Twin Cities store-brand prices as of November 2026 (Hy-Vee estimates are rougher). Online pickup and delivery prices can differ from shelf prices. Tap any price to type the real one; your prices are saved and used everywhere.
@@ -593,7 +610,7 @@ const PV=2; // bump when the recipe set changes so old saved plans don't point a
 let S={pv:PV,plan:{...DEFAULT_PLAN},people:1,stores:{aldi:true,walmart:true,target:true,cub:true,hyvee:true},have:{},got:{},prices:{},route:"mix",tab:"plan",theme:{bg:"black",accent:"green"},extra:{}};
 const LS="cheaper-cart-v1";
 try{const raw=localStorage.getItem(LS);if(raw)merge(JSON.parse(raw));}catch(e){}
-function merge(d){if(!d||typeof d!=="object")return;const keys=["people","stores","have","got","prices","route","tab","theme","extra","live","liveAt","pf","cf","fav"];if(d.pv===PV)keys.push("plan");else S.got={};for(const k of keys)if(d[k]!==undefined)S[k]=JSON.parse(JSON.stringify(d[k]));S.pv=PV;for(const st of STORES)if(S.stores[st.id]===undefined)S.stores[st.id]=true;}
+function merge(d){if(!d||typeof d!=="object")return;const keys=["people","stores","have","got","prices","route","tab","theme","extra","live","liveAt","pf","cf","fav","pantry"];if(d.pv===PV)keys.push("plan");else S.got={};for(const k of keys)if(d[k]!==undefined)S[k]=JSON.parse(JSON.stringify(d[k]));S.pv=PV;for(const st of STORES)if(S.stores[st.id]===undefined)S.stores[st.id]=true;}
 
 // ---- persistence (private per-viewer db doc, falls back to this browser) ----
 let docRef=null,saveTimer=null,saving=Promise.resolve();
@@ -720,7 +737,8 @@ function renderInner(){
   $("#storeChips").innerHTML=STORES.map(s=>`<button type="button" class="chip" data-store="${s.id}" aria-pressed="${!!S.stores[s.id]}">${s.name}</button>`).join("");
   $("#pplN").textContent=S.people;
   document.querySelectorAll("nav.tabs button").forEach(b=>{const on=b.dataset.tab===S.tab;b.setAttribute("aria-selected",on);b.tabIndex=on?0:-1;});
-  for(const t of ["plan","list","compare"])$("#panel-"+t).hidden=S.tab!==t;
+  for(const t of ["plan","list","compare","pantry"])$("#panel-"+t).hidden=S.tab!==t;
+  if(S.tab==="pantry")renderPantry(list);
   if(S.tab==="plan")renderPlan();
   if(S.tab==="list")renderList(list);
   if(S.tab==="compare")renderCompare(list);
@@ -801,6 +819,56 @@ function renderList(list){
   $("#panel-list").innerHTML=h;
 }
 
+// ---- recommended vegan pantry: core = the starter pantry the meals are built on; others = worth adding over time ----
+const PANTRY=[
+ {h:"Beans, lentils & tofu",note:"Your main protein. Dry beans and lentils are the cheapest protein per gram.",items:[
+  ["pinto",1,"Cheapest bean. Batch-cook and freeze."],["black",1,"Chili, tacos, soups."],["lentils",1,"Cook in 20 minutes with no soaking."],
+  ["splitpea",0,"Thick soups and dal. Cheapest protein per gram."],["cchick",0,"Canned for fast meals; no soaking."],["tofuxf",0,"20 g protein per serving, plus calcium."]]},
+ {h:"Grains",note:"Cheap calories and fiber. Whole grains keep you full longer.",items:[
+  ["rice",1,"Base for beans, curries and stir-fries."],["oats",1,"The cheapest filling breakfast."],["pasta",1,"Fast dinners and lo mein."],["ctort",0,"Tacos and enchiladas; a whole grain."]]},
+ {h:"Nuts, seeds & oil",note:"Healthy fats and extra calories when money is tight.",items:[
+  ["pb",1,"Cheap protein and calories; lasts months."],["oil",1,"For frying and roasting."],["flax",0,"Omega-3 fats, which vegan diets can run low on. One tablespoon a day."]]},
+ {h:"Canned & jarred",note:"Shelf-stable flavor for soups, sauces and curries.",items:[
+  ["tomatoes",1,"Sauces, chili, soups and curry."],["tpaste",0,"Deep tomato flavor for a few cents."],["soysauce",0,"Salty, savory flavor for Asian dishes."]]},
+ {h:"Spices & seasonings",note:"A few jars make cheap food taste good.",items:[
+  ["salt",1,"Choose iodized salt. Many vegans get too little iodine."],["chili",1,"Mexican dishes, chili and stews."],["cumin",1,"Beans, curries and tacos."],["garlic",1,"Flavor for almost every savory meal."]]},
+ {h:"Produce that keeps",note:"These last weeks in a cool, dark place.",items:[
+  ["onions",1,"The flavor base for most recipes."],["potatoes",1,"The cheapest filling vegetable."],["carrots",1,"Vitamin A; lasts weeks in the fridge."],["cabbage",1,"Lasts weeks and costs about 80¢ a pound."]]},
+ {h:"Freezer",note:"Frozen vegetables are as nutritious as fresh and never go bad.",items:[
+  ["mixveg",1,"Add to rice, noodles, soups and curry."],["spinach",0,"Iron and folate for soups and pasta."],["peas",0,"Extra protein and sweetness."]]},
+ {h:"Vegan nutrition must-haves",note:"Food can't cover these well on a vegan diet, so plan for them.",items:[
+  ["soymilk",0,"Fortified soy milk adds calcium, vitamin D and B12."],
+  [null,0,"Vitamin B12 supplement: the one thing every vegan needs. A store-brand bottle costs a few dollars and lasts months.","Vitamin B12 supplement"]]}
+];
+function renderPantry(list){
+  const idx=enabledIdx(),onList=new Set(list.filter(n=>n.pk&&!n.have).map(n=>n.id)),has=id=>!!(S.pantry&&S.pantry[id]);
+  const all=PANTRY.flatMap(g=>g.items).filter(([id])=>id&&ITEMS[id]);
+  const core=all.filter(([id,c])=>c),missing=core.filter(([id])=>!has(id)&&!onList.has(id));
+  const coreCost=core.reduce((s,[id])=>{const b=cheapest(id,idx);return s+(b?b.p:0);},0);
+  const missCost=missing.reduce((s,[id])=>{const b=cheapest(id,idx);return s+(b?b.p:0);},0);
+  const haveN=all.filter(([id])=>has(id)).length;
+  let h=`<h2>Recommended vegan pantry</h2>
+  <p class="lede" style="margin-top:6px">The staples every recipe in this app is built from, plus a few worth adding over time. Check off what you already have.</p>
+  <div class="cards pantrysum">
+    <div class="card"><div class="t">Starter pantry</div><div class="v">${money(coreCost)}</div><div class="small muted">${core.length} core items at your cheapest stores. Most last for weeks or months.</div></div>
+    <div class="card"><div class="t">You already have</div><div class="v">${haveN} of ${all.length}</div><div class="small muted">pantry items checked off</div></div>
+    <div class="card best"><div class="t">Still need (starter)</div><div class="v">${money(missCost)}</div><div class="small muted">${missing.length} item${missing.length===1?"":"s"} not on hand or on your list</div></div>
+  </div>
+  <div class="btns" style="margin-bottom:16px"><button type="button" class="btn" id="addMissing"${missing.length?"":" disabled"}>Add ${missing.length} missing starter item${missing.length===1?"":"s"} to my list</button></div>`;
+  for(const g of PANTRY){
+    h+=`<section class="pgroup" aria-labelledby="pg-${g.h.replace(/\W+/g,"")}"><h3 id="pg-${g.h.replace(/\W+/g,"")}">${g.h}</h3><p class="small muted" style="margin:4px 0 8px">${g.note}</p><ul class="plist">`;
+    for(const [id,c,why,label] of g.items){
+      if(!id){h+=`<li class="pi info"><span class="picon" aria-hidden="true">!</span><div class="pbody"><div class="pname">${label}</div><div class="small muted">${why}</div></div><div class="pside small muted">Not price-tracked</div></li>`;continue;}
+      const it=ITEMS[id],b=cheapest(id,idx),got=has(id),inList=onList.has(id);
+      h+=`<li class="pi${got?" got":""}"><input type="checkbox" id="pan-${id}" data-pan="${id}"${got?" checked":""} aria-describedby="pw-${id}">
+        <div class="pbody"><label for="pan-${id}" class="pname">${it.n}${c?' <span class="core">Starter</span>':""}<span class="sr">${got?", I have this":""}</span></label><div class="small muted" id="pw-${id}">${why} ${it.pkg}.</div></div>
+        <div class="pside">${b?`<div class="num">${money(b.p)}</div><div class="small muted">at ${STORES[b.i].name}</div>`:'<div class="small muted">Not at your stores</div>'}
+        ${got?"":inList?'<div class="small onlist">On your list</div>':`<button type="button" class="linkbtn" data-extra="${id}" data-d="1">Add to list<span class="sr"> ${it.n}</span></button>`}</div></li>`;
+    }
+    h+=`</ul></section>`;
+  }
+  $("#panel-pantry").innerHTML=h;
+}
 function renderCompare(list){
   const idx=enabledIdx(),buyList=list.filter(n=>!n.have&&n.pk);
   const mix=total(assign("mix",list));
@@ -1016,6 +1084,7 @@ document.addEventListener("click",e=>{
   if(t.dataset.have){const id=t.dataset.have;if(S.have[id])delete S.have[id];else S.have[id]=true;save();render();return;}
   if(t.dataset.edit){startEdit(t);return;}
   if(t.id==="pplMinus"||t.id==="pplPlus"){S.people=Math.max(1,Math.min(8,S.people+(t.id==="pplPlus"?1:-1)));save();render();return;}
+  if(t.id==="addMissing"){const onList=new Set(needs().filter(n=>n.pk&&!n.have).map(n=>n.id));const ids=PANTRY.flatMap(g=>g.items).filter(([id,c])=>id&&c&&ITEMS[id]&&!(S.pantry&&S.pantry[id])&&!onList.has(id)).map(([id])=>id);ids.forEach(id=>{S.extra[id]=(S.extra[id]||0)+1;delete S.have[id];});save();render();toast(`Added ${ids.length} starter item${ids.length===1?"":"s"} to your shopping list`);return;}
   if(t.id==="resetPlan"){PREV_PLAN={...S.plan};S.plan={...DEFAULT_PLAN};save();render();toast("Sample week restored");return;}
   if(t.id==="shufflePlan"){shufflePlan();return;}
   if(t.id==="undoPlan"){if(PREV_PLAN){S.plan=PREV_PLAN;PREV_PLAN=null;save();render();toast("Previous week restored");}return;}
@@ -1038,6 +1107,7 @@ document.addEventListener("change",e=>{
   const t=e.target;
   if(t.dataset&&t.dataset.got){const id=t.dataset.got;if(t.checked)S.got[id]=true;else delete S.got[id];save();render();}
   if(t.id==="routeSel"){S.route=t.value;save();render();}
+  if(t.dataset&&t.dataset.pan){const id=t.dataset.pan;S.pantry=S.pantry||{};if(t.checked)S.pantry[id]=true;else delete S.pantry[id];save();render();announce(`${ITEMS[id].n} ${t.checked?"marked as on hand":"marked as needed"}`);}
 });
 function startEdit(btn){
   const id=btn.dataset.edit,i=+btn.dataset.si,td=btn.parentElement,cur=price(id,i);
