@@ -17,7 +17,7 @@ The built-in prices are estimates of typical Twin Cities store-brand prices as o
 
 ## Running it
 
-**Live site:** https://geeksimplified.github.io/cheaper-cart/
+**Live site:** https://geeksimplified.github.io/cheaper-vegan/
 
 Or open `index.html` in any web browser. Nothing to install. Your plan and prices are saved in your browser's local storage.
 
