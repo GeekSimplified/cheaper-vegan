@@ -436,6 +436,28 @@ const EXTRA={
  fberries:{n:"Frozen mixed berries",pkg:"16 oz bag",size:16,u:"oz",cat:"Frozen",p:[2.79,2.92,3.29,3.99],k:"fruit smoothie"},
  ccorn:{n:"Canned corn",pkg:"15 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.69,0.72,0.79,1.09]},
  cgreen:{n:"Canned green beans",pkg:"14.5 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.69,0.72,0.79,1.09]},
+ // more canned staples (estimates)
+ cwhite:{n:"Canned great northern beans",pkg:"15.5 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.79,0.78,0.89,1.19],k:"white beans cannellini navy"},
+ cblackeye:{n:"Canned black-eyed peas",pkg:"15.5 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.89,0.88,0.99,1.29],k:"beans"},
+ clentil:{n:"Canned lentils",pkg:"15 oz can",size:1,u:"can",cat:"Canned & pantry",p:[null,1.48,1.79,2.29],k:"beans legumes"},
+ cbaked:{n:"Vegetarian baked beans (no pork)",pkg:"16 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.99,1.12,1.19,1.69],k:"beans"},
+ cpeas:{n:"Canned sweet peas",pkg:"15 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.69,0.72,0.79,1.09],k:"vegetables"},
+ ccarrot:{n:"Canned sliced carrots",pkg:"14.5 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.69,0.72,0.79,1.09],k:"vegetables"},
+ cmixveg:{n:"Canned mixed vegetables",pkg:"15 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.69,0.72,0.79,1.09],k:"vegetables"},
+ cpotato:{n:"Canned sliced potatoes",pkg:"15 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.75,0.78,0.89,1.19],k:"vegetables"},
+ cspinach:{n:"Canned leaf spinach",pkg:"13.5 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.99,1.37,1.29,1.69],k:"vegetables greens"},
+ cmush:{n:"Canned mushrooms (stems & pieces)",pkg:"4 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.79,0.88,0.99,1.29],k:"vegetables"},
+ cyams:{n:"Canned sweet potatoes (yams)",pkg:"15 oz can",size:1,u:"can",cat:"Canned & pantry",p:[1.29,1.48,1.69,1.99],k:"vegetables"},
+ cpumpkin:{n:"Canned pumpkin",pkg:"15 oz can",size:1,u:"can",cat:"Canned & pantry",p:[1.29,1.48,1.69,2.29],k:"vegetables puree"},
+ ccrushed:{n:"Crushed tomatoes",pkg:"28 oz can",size:1,u:"can",cat:"Canned & pantry",p:[1.39,1.48,1.69,2.19],k:"canned sauce"},
+ cchiles:{n:"Diced green chiles",pkg:"4 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.89,0.98,1.09,1.49],k:"canned peppers mexican"},
+ cocomilk:{n:"Coconut milk",pkg:"13.5 oz can",size:1,u:"can",cat:"Canned & pantry",p:[1.49,1.52,1.79,2.29],k:"canned curry"},
+ salsa:{n:"Salsa",pkg:"16 oz jar",size:16,u:"oz",cat:"Canned & pantry",p:[1.69,1.78,1.99,2.69],k:"jar mexican"},
+ enchsauce:{n:"Red enchilada sauce",pkg:"10 oz can",size:1,u:"can",cat:"Canned & pantry",p:[1.09,1.18,1.29,1.79],k:"canned mexican"},
+ cpeach:{n:"Canned peaches in juice",pkg:"15 oz can",size:1,u:"can",cat:"Canned & pantry",p:[1.15,1.24,1.39,1.79],k:"fruit"},
+ cpine:{n:"Canned pineapple chunks in juice",pkg:"20 oz can",size:1,u:"can",cat:"Canned & pantry",p:[1.15,1.24,1.39,1.79],k:"fruit"},
+ cmandarin:{n:"Canned mandarin oranges",pkg:"11 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.89,0.98,1.09,1.49],k:"fruit"},
+ applesauce:{n:"Unsweetened applesauce",pkg:"24 oz jar",size:24,u:"oz",cat:"Canned & pantry",p:[1.69,1.82,1.99,2.69],k:"fruit jar snack"},
  tsauce:{n:"Tomato sauce",pkg:"15 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.59,0.64,0.79,1.09]},
  tpaste:{n:"Tomato paste",pkg:"6 oz can",size:1,u:"can",cat:"Canned & pantry",p:[0.49,0.56,0.69,0.99]},
  psauce:{n:"Pasta sauce (marinara)",pkg:"24 oz jar",size:24,u:"oz",cat:"Canned & pantry",p:[1.49,1.42,1.69,2.49],k:"spaghetti sauce"},
@@ -933,7 +955,9 @@ const PANTRY=[
  {h:"Nuts, seeds & oil",note:"Healthy fats and extra calories when money is tight.",items:[
   ["pb",1,"Cheap protein and calories; lasts months."],["oil",1,"For frying and roasting."],["flax",0,"Omega-3 fats, which vegan diets can run low on. One tablespoon a day."]]},
  {h:"Canned & jarred",note:"Shelf-stable flavor for soups, sauces and curries.",items:[
-  ["tomatoes",1,"Sauces, chili, soups and curry."],["tpaste",0,"Deep tomato flavor for a few cents."],["soysauce",0,"Salty, savory flavor for Asian dishes."]]},
+  ["tomatoes",1,"Sauces, chili, soups and curry."],["tpaste",0,"Deep tomato flavor for a few cents."],["soysauce",0,"Salty, savory flavor for Asian dishes."],
+  ["cblack",0,"Ready-to-eat beans for fast meals. Rinse to cut the salt."],["cmixveg",0,"Vegetables that keep for years when the freezer is empty."],
+  ["cocomilk",0,"Makes curries creamy and adds calories."],["salsa",0,"Instant flavor for beans, rice and potatoes."],["cpeach",0,"Fruit that keeps; choose packed in juice, not syrup."]]},
  {h:"Spices & seasonings",note:"A few jars make cheap food taste good.",items:[
   ["salt",1,"Choose iodized salt. Many vegans get too little iodine."],["chili",1,"Mexican dishes, chili and stews."],["cumin",1,"Beans, curries and tacos."],["garlic",1,"Flavor for almost every savory meal."]]},
  {h:"Produce that keeps",note:"These last weeks in a cool, dark place.",items:[
@@ -1012,7 +1036,7 @@ function searchItems(q){
     const score=toks.reduce((s,t)=>s+(name.startsWith(t)?3:name.includes(t)?2:0),0);
     out.push({id,score});
   }
-  return out.sort((a,b)=>b.score-a.score||ITEMS[a.id].n.localeCompare(ITEMS[b.id].n)).slice(0,20).map(o=>o.id);
+  return out.sort((a,b)=>b.score-a.score||ITEMS[a.id].n.localeCompare(ITEMS[b.id].n)).slice(0,40).map(o=>o.id);
 }
 function renderSearch(){
   const q=$("#q").value.trim(),box=$("#searchResults");$("#qClear").hidden=!q;
